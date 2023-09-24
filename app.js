@@ -14,7 +14,6 @@ async function App() {
 
   const categories = await page.evaluate(() => {
     const mainContainer = document.querySelector(".categoryContainer");
-    //armar arreglo de objetos
     const categoriesCollection = [];
 
     if (mainContainer) {
@@ -22,17 +21,18 @@ async function App() {
       Array.from(categories).forEach((category) => {
         const nav = category.querySelector("nav");
         const items = nav.querySelectorAll("li");
-        const itemsList = [];
+        const subcategories = [];
         let h2 = category.querySelector("h2");
 
         items.forEach((item) => {
           const a_element = item.querySelector("a");
-          itemsList.push(a_element.textContent.trim());
+          hrefValue = a_element.getAttribute("href");
+          subcategories.push(hrefValue);
         });
 
         categoriesCollection.push({
           category: h2.textContent.trim(),
-          items: itemsList,
+          subcategories: subcategories,
         });
       });
     } else {
@@ -42,29 +42,14 @@ async function App() {
     return categoriesCollection;
   });
 
-  console.log(categories);
+  //console.log(categories);
 
-  // await page.goto("https://www.mouser.cl/electronic-components/");
-
-  // await page.waitForSelector("#tblSplitCategories");
-
-  // const categories = await page.evaluate(() => {
-  //   const mainContainer = document.getElementById("tblSplitCategories");
-
-  //   if (mainContainer) {
-  //     const categories = mainContainer.children;
-  //     Array.from(categories).forEach((category) => {
-  //       let h2 = category.querySelector("h2");
-  //       console.log(h2.textContent.trim());
-  //     });
-  //   } else {
-  //     console.log("No existe mainContainer");
-  //   }
-  //   debugger; // Pause execution here
-  // });
-
-  // console.log(categories);
-
+  for (const category of categories) {
+    for (const subcategory of category.subcategories) {
+      await page.goto(subcategory);
+      new Promise((r) => setTimeout(r, 100000)); // 10000 milisegundos = 10 segundos
+    }
+  }
   await browser.close();
 }
 
