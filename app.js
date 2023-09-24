@@ -47,6 +47,20 @@ async function App() {
   for (const category of categories) {
     for (const subcategory of category.subcategories) {
       await page.goto(subcategory);
+      //verificar si hay mas subcategorias
+      // const msg = await page.evaluate(() => {
+      //   const mainContainer = document.getElementById("paraSearch");
+      //   if (mainContainer) {
+      //     const tableExists = mainContainer.querySelector("table");
+      //     if (tableExists) {
+      //       console.log(subcategory + " tiene tabla");
+      //     } else {
+      //       console.log(subcategory + "no tiene tabla");
+      //     }
+      //   } else {
+      //     return "no se encuentra paraSearch en" + subcategory;
+      //   }
+      // });
       new Promise((r) => setTimeout(r, 100000)); // 10000 milisegundos = 10 segundos
     }
   }
