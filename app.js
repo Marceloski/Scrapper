@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const fs = require('fs');
 
 async function App() {
   const browser = await puppeteer.launch({
@@ -53,18 +54,19 @@ async function App() {
         if (mainContainer) {
           const tableExists = mainContainer.querySelector("table");
           if (tableExists) {
-            return subcategory + " tiene tabla";
+            return "Si tiene tabla "+subcategory;
           } else {
-            return subcategory + " no tiene tabla";
+            return "No tiene tabla "+subcategory;
           }
         } else {
           return "no se encuentra paraSearch en" + subcategory;
         }
       }, subcategory);
       //generar txt con los links que no tienen tabla, para poder recorrerlos
-      console.log(msg);
+      //console.log(msg);
+      fs.appendFileSync('linksTable.txt', msg + '\n');
 
-      await new Promise((r) => setTimeout(r, 10000)); // 10000 milisegundos = 10 segundos
+      await new Promise((r) => setTimeout(r, 5000)); // 10000 milisegundos = 10 segundos
     }
   }
   await browser.close();
