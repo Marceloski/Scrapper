@@ -48,20 +48,23 @@ async function App() {
     for (const subcategory of category.subcategories) {
       await page.goto(subcategory);
       //verificar si hay mas subcategorias
-      // const msg = await page.evaluate(() => {
-      //   const mainContainer = document.getElementById("paraSearch");
-      //   if (mainContainer) {
-      //     const tableExists = mainContainer.querySelector("table");
-      //     if (tableExists) {
-      //       console.log(subcategory + " tiene tabla");
-      //     } else {
-      //       console.log(subcategory + "no tiene tabla");
-      //     }
-      //   } else {
-      //     return "no se encuentra paraSearch en" + subcategory;
-      //   }
-      // });
-      new Promise((r) => setTimeout(r, 100000)); // 10000 milisegundos = 10 segundos
+      const msg = await page.evaluate((subcategory) => {
+        const mainContainer = document.getElementById("paraSearch");
+        if (mainContainer) {
+          const tableExists = mainContainer.querySelector("table");
+          if (tableExists) {
+            return subcategory + " tiene tabla";
+          } else {
+            return subcategory + " no tiene tabla";
+          }
+        } else {
+          return "no se encuentra paraSearch en" + subcategory;
+        }
+      }, subcategory);
+      //generar txt con los links que no tienen tabla, para poder recorrerlos
+      console.log(msg);
+
+      await new Promise((r) => setTimeout(r, 10000)); // 10000 milisegundos = 10 segundos
     }
   }
   await browser.close();
