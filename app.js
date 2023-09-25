@@ -45,6 +45,8 @@ async function App() {
   //console.log(categories);
 
   for (const category of categories) {
+    console.log("categoria antes: ");
+    console.log(JSON.stringify(category));
     for (let i = category.subcategories.length - 1; i >= 0; i--) {
       const subcategory = category.subcategories[i];
       /* 
@@ -57,8 +59,10 @@ async function App() {
           de subcategoria actual con los href de las sub-subcategorias.
       */
       await page.goto(subcategory);
-      /*page.evaluate retornara un arreglo de href (nuevas subcategorias) 
-      si es que existen mas subcategorias. En caso contrario retornara null.*/
+      /* 
+        page.evaluate retornara un arreglo de href (nuevas subcategorias) 
+        si es que existen mas subcategorias. En caso contrario retornara null.
+      */
       const moreSubCategories = await page.evaluate(() => {
         const mainContainer = document.getElementById("paraSearch");
         if (mainContainer) {
@@ -84,11 +88,13 @@ async function App() {
         }
       });
 
+      //Si existe mas subcategorias, se hace el reemplazo
       if (moreSubCategories) {
-        //eliminar href de subcategoria actual y agregar href de las sub-subcategorias.
+        //eliminar href de subcategoria actual
         category.subcategories.splice(i, 1);
+        //agregar href de las sub-subcategorias
         category.subcategories.push(...moreSubCategories);
-        console.log(category);
+        //console.log(category);
       }
       //generar txt con los links que no tienen tabla, para poder recorrerlos
       //console.log(msg);
@@ -96,9 +102,9 @@ async function App() {
 
       await new Promise((r) => setTimeout(r, 5000)); // 10000 milisegundos = 10 segundos
     }
+    console.log("categoria despues: ");
+    console.log(JSON.stringify(category));
   }
-
-  console.log(categories);
 
   await browser.close();
 }
