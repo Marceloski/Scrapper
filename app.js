@@ -1,19 +1,78 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
-async function App() {
-  const browser = await puppeteer.launch({
-    executablePath:
-      "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
-    headless: false,
+async function getSubcategories(page) {
+  await page.evaluate(() => {
+    const subcategories = [];
+    const mainContainer = document.getElementById("paraSearch");
+    const nav = mainContainer.querySelector("nav");
+    const items = nav.querySelectorAll("li");
+
+    items.forEach((item) => {
+      const a_element = item.querySelector("a");
+      subcategories.push(a_element.getAttribute("href"));
+    });
+
+    return subcategories;
   });
-  const page = await browser.newPage();
+}
 
+async function checkHasMoreSubCategories(page) {
+  //si no existe paraSearch da error y termina codigo
+  //await page.waitForSelector("#paraSearch");
+  return await page.evaluate(() => {
+    const mainContainer = document.getElementById("paraSearch");
+    if (mainContainer) {
+      const tableExists = mainContainer.querySelector("table");
+      if (tableExists) {
+        // There are articles
+        return false;
+      } else {
+        // There are no articles
+        return true;
+      }
+    } else {
+      //Es un producto
+      return null;
+    }
+  });
+}
+
+async function getAllProducts(page, categoriesCollection) {
+  const productsCollection = [];
+  for (const category of categoriesCollection) {
+    const categoryProductsCollection = [];
+    for (const subcategory of category.subcategories) {
+      const subcategoryProductsCollection = [];
+
+      //entra en subcategoria
+      await page.goto(subcategory);
+
+      //revisa si subcategoria tiene sub-subcategorias
+      const hasMoreSubCategories = await checkHasMoreSubCategories(page);
+
+      if (hasMoreSubCategories) {
+        const subcategories = getSubcategories(page);
+      } else {
+        if (!hasMoreSubCategories) {
+          //recuperar datos
+        } else {
+          //verificar si es producto, recuperar datos de el
+        }
+      }
+      categoryProductsCollection.push(subcategoryProductsCollection);
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+    productsCollection.push(categoryProductsCollection);
+  }
+  return productsCollection;
+}
+
+async function getAllCategories(page) {
+  //recuperar categorias y subcategorias
   await page.goto("https://www.newark.com/browse-for-products");
-
   await page.waitForSelector(".categoryContainer");
-
-  const categories = await page.evaluate(() => {
+  const categoriesCollection = await page.evaluate(() => {
     const mainContainer = document.querySelector(".categoryContainer");
     const categoriesCollection = [];
 
@@ -39,72 +98,24 @@ async function App() {
       console.log("No existe mainContainer");
     }
     //debugger; // Pause execution here
+
     return categoriesCollection;
   });
+  return categoriesCollection;
+}
 
-  //console.log(categories);
+async function App() {
+  const browser = await puppeteer.launch({
+    executablePath:
+      "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
+    headless: false,
+  });
+  const page = await browser.newPage();
+  const categoriesCollection = await getAllCategories(page);
+  const productsCollection = await getAllProducts(page, categoriesCollection);
 
-  for (const category of categories) {
-    console.log("categoria antes: ");
-    console.log(JSON.stringify(category));
-    for (let i = category.subcategories.length - 1; i >= 0; i--) {
-      const subcategory = category.subcategories[i];
-      /* 
-        PARA RESOLVER PROBLEMA DE SUBCATEGORIAS EXTENDIDAS: 
-        1) Hacer goto a href de subcategory
-        2) Hacer evaluate a pagina de subcategory
-        3) Verificar si existe contenedor principal "paraSearch", si no existe, es porque es un producto.
-        4) Si existe un elemento tabla en contenedor principal, significa que no tiene mas subcategorias. href se deja tal cual.
-        5) Si no existe un elemento tabla en contenedor principal, significa que tiene mas subcategorias. Se debe reemplazar href 
-          de subcategoria actual con los href de las sub-subcategorias.
-      */
-      await page.goto(subcategory);
-      /* 
-        page.evaluate retornara un arreglo de href (nuevas subcategorias) 
-        si es que existen mas subcategorias. En caso contrario retornara null.
-      */
-      const moreSubCategories = await page.evaluate(() => {
-        const mainContainer = document.getElementById("paraSearch");
-        if (mainContainer) {
-          const tableExists = mainContainer.querySelector("table");
-          if (tableExists) {
-            return null;
-          } else {
-            const nav = mainContainer.querySelector("nav");
-            const items = nav.querySelectorAll("li");
-            const newSubCategories = [];
-
-            items.forEach((item) => {
-              const divContainer = item.querySelector(".productName");
-              const a_element = divContainer.querySelector("a");
-              newSubCategories.push(a_element.getAttribute("href"));
-            });
-
-            return newSubCategories;
-          }
-        } else {
-          //verificar si es un producto
-          return null;
-        }
-      });
-
-      //Si existe mas subcategorias, se hace el reemplazo
-      if (moreSubCategories) {
-        //eliminar href de subcategoria actual
-        category.subcategories.splice(i, 1);
-        //agregar href de las sub-subcategorias
-        category.subcategories.push(...moreSubCategories);
-        //console.log(category);
-      }
-      //generar txt con los links que no tienen tabla, para poder recorrerlos
-      //console.log(msg);
-      //fs.appendFileSync('linksTable.txt', msg + '\n');
-
-      await new Promise((r) => setTimeout(r, 5000)); // 10000 milisegundos = 10 segundos
-    }
-    console.log("categoria despues: ");
-    console.log(JSON.stringify(category));
-  }
+  console.log(categoriesCollection);
+  //console.log(productsCollection);
 
   await browser.close();
 }
