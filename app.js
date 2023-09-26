@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 
 async function getSubcategories(page) {
-  await page.evaluate(() => {
+  return await page.evaluate(() => {
     const subcategories = [];
     const mainContainer = document.getElementById("paraSearch");
     const nav = mainContainer.querySelector("nav");
@@ -42,7 +42,7 @@ async function getAllProducts(page, categoriesCollection) {
   const productsCollection = [];
   for (const category of categoriesCollection) {
     const categoryProductsCollection = [];
-    for (const subcategory of category.subcategories) {
+    for (const subcategory of category.subcategories) { // Error occurs here
       const subcategoryProductsCollection = [];
 
       //entra en subcategoria
@@ -52,7 +52,13 @@ async function getAllProducts(page, categoriesCollection) {
       const hasMoreSubCategories = await checkHasMoreSubCategories(page);
 
       if (hasMoreSubCategories) {
-        const subcategories = getSubcategories(page);
+        // This is where you need to await the getSubcategories function
+        const subcategories = await getSubcategories(page);
+
+        for (const subcategory of subcategories) {
+          console.log(subcategory);
+        }
+        //recorrer nuevas subcategorias
       } else {
         if (!hasMoreSubCategories) {
           //recuperar datos
@@ -67,6 +73,7 @@ async function getAllProducts(page, categoriesCollection) {
   }
   return productsCollection;
 }
+
 
 async function getAllCategories(page) {
   //recuperar categorias y subcategorias
