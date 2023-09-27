@@ -21,43 +21,63 @@ const { error } = require("console");
 //   });
 // }
 
+async function retryPageGoto(page, url, maxRetries = 3) {
+  let retries = 0;
+  while (retries < maxRetries) {
+    try {
+      await page.goto(url);
+      return; // Navigation succeeded, exit the loop
+    } catch (error) {
+      console.error(`Error navigating to ${url}, retrying...`);
+      retries++;
+      // You can adjust the delay time between retries as needed
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
+  throw new Error(`Failed to navigate to ${url} after ${maxRetries} retries.`);
+}
+
 async function getProductsLinksInTable(page) {
   return await page.evaluate(() => {
     const mainContainer = document.getElementById("paraSearch");
     const tableElement = mainContainer.querySelector("table");
     const productsRowsInTable = tableElement.querySelectorAll(".productRow ");
-    const productsLinksCollection = [];
+    const productsPageCollection = [];
 
     productsRowsInTable.forEach((productRow) => {
       const productImageElement = productRow.querySelector(".productImage");
       const a_element = productImageElement.querySelector("a");
 
-      productsLinksCollection.push(a_element.getAttribute("href"));
+      productsPageCollection.push(a_element.getAttribute("href"));
     });
-    return productsLinksCollection;
+    return productsPageCollection;
   });
 }
 
-async function getNextPage(page) {
+async function getNextPage(page, previousPage) {
   try {
+    await page.waitForSelector("#paraSearch");
     await page.waitForSelector(".paginLinks");
     return await page.evaluate(() => {
       const mainContainer = document.querySelector("#paraSearch");
       const paginLinks = mainContainer.querySelector(".paginLinks");
       const paginNextArrow = paginLinks.querySelector(".paginNextArrow");
-      const a_element = paginNextArrow.querySelector("a");
 
-      if (paginNextArrow)
+      if (paginNextArrow) {
+        const a_element = paginNextArrow.querySelector("a");
         return { isLast: false, href: a_element.getAttribute("href") };
-      else return { isLast: true, href: "" };
-
+      } else return { isLast: true, href: "" };
     });
   } catch (e) {
-    throw new Error("Elemento con clase .paginLinks no existe");
+    console.log(e);
+    console.log("pagina del error: " + previousPage);
   }
 }
 
 async function getProductData(page) {
+  await page.waitForSelector("#product");
+  console.log("Entra en getProductData");
+  return true;
   //recuperar datos
 }
 
@@ -71,19 +91,22 @@ async function getProductDataFromTable(page, newSubcategory) {
 
   try {
     while (!nextPage.isLast) {
-      //recuperar links de articulos
-      const productsLinksCollection = await getProductsLinksInTable(page);
-      console.log(productsLinksCollection);
+      const productsPageCollection = await getProductsLinksInTable(page);
 
-      //recorrer cada link y recuperar datos
+      // Use a for...of loop to iterate over productsPageCollection
+      for (const productPage of productsPageCollection) {
+        try {
+          await new Promise((r) => setTimeout(r, 3000));
+          await retryPageGoto(page, productPage);
+          productDataFromTable.push(await getProductData(page));
+        } catch (error) {
+          console.error(error);
+        }
+      }
 
-      //volver a pagina anterior(tabla)
+      await page.goto(previousPage);
+      nextPage = await getNextPage(page, previousPage);
 
-      //se recupera siguiente pagina
-      nextPage = await getNextPage(page);
-      //console.log("objeto nextPage"+JSON.stringify(nextPage));
-
-      //si no es pagina final, ir a la siguiente pagina
       if (!nextPage.isLast) {
         await page.goto(nextPage.href);
         previousPage = nextPage.href;
@@ -93,7 +116,7 @@ async function getProductDataFromTable(page, newSubcategory) {
       "-------- Se termina de recorrer productos en subcategoria -------- "
     );
   } catch (e) {
-    //console.log(e);
+    console.log(e);
   }
 
   return true;
@@ -228,6 +251,7 @@ async function App() {
     headless: false,
   });
   const page = await browser.newPage();
+  await page.setUserAgent("Chrome/99.0.1234.0");
   const categoriesCollection = await getAllCategories(page);
   const productsCollection = await getAllProducts(page, categoriesCollection);
 
