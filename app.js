@@ -1,12 +1,33 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
-async function getProductData(page, subcategory) {
-  //entra en subcategoria
-  await page.goto(subcategory);
-  const mainContainer = getElementById("paraSearch");
-  const tableElement = mainContainer.querySelector("table");
-  const tableHeader = tableElement.querySelector("thead");
+// async function getTableHeadElements(page) {
+//   return await page.evaluate(() => {
+//     const mainContainer = document.getElementById("paraSearch");
+//     const tableElement = mainContainer.querySelector("table");
+//     const tableHead = tableElement.querySelector("thead");
+//     const tableHeadRow = tableHead.querySelector("tr");
+//     const tableHeadElements = tableHeadRow.children;
+//     const tableHeadElementsData = [];
+
+//     for (let i = 1; i < tableHeadElements.length; i++) {
+//       const tableHeadElement = tableHeadElements[i];
+
+//       tableHeadElementsData.push(tableHeadElement.textContent.trim());
+//     }
+
+//     return tableHeadElementsData;
+//   });
+// }
+
+async function getProductData(page) {
+  //recuperar datos
+}
+
+async function getProductDataFromTable(page) {
+  //recorrer cada tabla
+
+  //recorrer cada producto en tabla
 }
 
 async function getSubcategories(page) {
@@ -66,9 +87,13 @@ async function getAllProducts(page, categoriesCollection) {
 
         //recorrer nuevas subcategorias
         for (const newSubcategory of newSubcategories) {
+          //ir a pagina de subcategoria
+          await page.goto(newSubcategory);
+
           //recuperar datos de productos en subcategoria
           subcategoryProductsCollection.push(
-            await getProductData(page, newSubcategory)
+            //recupera los datos de productos que estan en la tabla
+            await getProductDataFromTable(page)
           );
 
           await new Promise((r) => setTimeout(r, 3000));
@@ -76,7 +101,12 @@ async function getAllProducts(page, categoriesCollection) {
       } else {
         //Si no tiene mas subcategorias
         if (!hasMoreSubCategories) {
-          //recuperar datos
+          //recuperar datos de productos en subcategoria
+          subcategoryProductsCollection.push(
+            //recupera los datos de productos que estan en la tabla
+            await getProductDataFromTable(page)
+          );
+        //si hasMoreSubCategories es null
         } else {
           //verificar si es producto, recuperar datos de el
         }
