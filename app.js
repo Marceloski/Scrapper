@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
+const { error } = require("console");
 
 // async function getTableHeadElements(page) {
 //   return await page.evaluate(() => {
@@ -20,14 +21,73 @@ const fs = require("fs");
 //   });
 // }
 
+async function getProductsLinksInTable(page) {
+  return await page.evaluate(() => {
+    const mainContainer = document.getElementById("paraSearch");
+    const tableElement = mainContainer.querySelector("table");
+    const productsRowsInTable = tableElement.querySelectorAll(".productRow ");
+    const productsLinksCollection = [];
+
+    productsRowsInTable.forEach((productRow) => {
+      const productImageElement = productRow.querySelector(".productImage");
+      const a_element = productImageElement.querySelector("a");
+
+      productsLinksCollection.push(a_element.getAttribute("href"));
+    });
+    return productsLinksCollection;
+  });
+}
+
+async function getNextPage(page) {
+  try {
+    await page.waitForSelector(".paginLinks");
+    return await page.evaluate(() => {
+      const mainContainer = document.querySelector("#paraSearch");
+      const paginLinks = mainContainer.querySelector(".paginLinks");
+      const paginNextArrow = paginLinks.querySelector(".paginNextArrow");
+      const a_element = paginNextArrow.querySelector("a");
+
+      if (paginNextArrow)
+        return { value: false, href: a_element.textContent.trim() };
+      else return { value: true, href: "" };
+    });
+  } catch (e) {
+    console.log(error);
+    throw new Error("Elemento con clase .paginLinks no existe");
+  }
+}
+
 async function getProductData(page) {
   //recuperar datos
 }
 
-async function getProductDataFromTable(page) {
-  //recorrer cada tabla
+async function getProductDataFromTable(page, newSubcategory) {
+  await page.goto(newSubcategory);
+  let previousPage = newSubcategory;
+  //se inicializa nextPage no siendo pagina final
+  let nextPage = { isLast: false };
+  const productDataFromTable = [];
 
-  //recorrer cada producto en tabla
+  while (!nextPage.isLast) {
+    //recuperar links de articulos
+    const productsLinksCollection = await getProductsLinksInTable(page);
+    console.log(productsLinksCollection);
+
+    //recorrer cada link y recuperar datos
+
+    //volver a pagina anterior(tabla)
+
+    //se recupera siguiente pagina
+    nextPage = getNextPage(page);
+
+    //si no es pagina final, ir a la siguiente pagina
+    if (!nextPage.isLast) {
+      await page.goto(nextPage.href);
+      previousPage = nextPage.href;
+    }
+  }
+
+  return true;
 }
 
 async function getSubcategories(page) {
@@ -77,7 +137,7 @@ async function getAllProducts(page, categoriesCollection) {
       //entra en subcategoria
       await page.goto(subcategory);
 
-      //revisa si subcategoria tiene sub-subcategorias
+      //revisa si subcategoria tiene mas subcategorias
       const hasMoreSubCategories = await checkHasMoreSubCategories(page);
 
       //Si tiene mas subcategorias
@@ -87,13 +147,10 @@ async function getAllProducts(page, categoriesCollection) {
 
         //recorrer nuevas subcategorias
         for (const newSubcategory of newSubcategories) {
-          //ir a pagina de subcategoria
-          await page.goto(newSubcategory);
-
-          //recuperar datos de productos en subcategoria
+          //agregar datos de productos que se encuentran en subcategoria
           subcategoryProductsCollection.push(
             //recupera los datos de productos que estan en la tabla
-            await getProductDataFromTable(page)
+            await getProductDataFromTable(page, newSubcategory)
           );
 
           await new Promise((r) => setTimeout(r, 3000));
@@ -101,14 +158,14 @@ async function getAllProducts(page, categoriesCollection) {
       } else {
         //Si no tiene mas subcategorias
         if (!hasMoreSubCategories) {
-          //recuperar datos de productos en subcategoria
+          //agregar datos de productos que se encuentran en subcategoria
           subcategoryProductsCollection.push(
             //recupera los datos de productos que estan en la tabla
-            await getProductDataFromTable(page)
+            await getProductDataFromTable(page, subcategory)
           );
-        //si hasMoreSubCategories es null
+          //si es una posible pagina de producto
         } else {
-          //verificar si es producto, recuperar datos de el
+          //verificar si es pagina de producto, recuperar datos de el
         }
       }
       categoryProductsCollection.push(subcategoryProductsCollection);
@@ -165,7 +222,7 @@ async function App() {
   const categoriesCollection = await getAllCategories(page);
   const productsCollection = await getAllProducts(page, categoriesCollection);
 
-  console.log(categoriesCollection);
+  //console.log(categoriesCollection);
   //console.log(productsCollection);
 
   await browser.close();
