@@ -48,11 +48,11 @@ async function getNextPage(page) {
       const a_element = paginNextArrow.querySelector("a");
 
       if (paginNextArrow)
-        return { value: false, href: a_element.textContent.trim() };
-      else return { value: true, href: "" };
+        return { isLast: false, href: a_element.getAttribute("href") };
+      else return { isLast: true, href: "" };
+
     });
   } catch (e) {
-    console.log(error);
     throw new Error("Elemento con clase .paginLinks no existe");
   }
 }
@@ -68,23 +68,31 @@ async function getProductDataFromTable(page, newSubcategory) {
   let nextPage = { isLast: false };
   const productDataFromTable = [];
 
-  while (!nextPage.isLast) {
-    //recuperar links de articulos
-    const productsLinksCollection = await getProductsLinksInTable(page);
-    console.log(productsLinksCollection);
+  try {
+    while (!nextPage.isLast) {
+      //recuperar links de articulos
+      const productsLinksCollection = await getProductsLinksInTable(page);
+      console.log(productsLinksCollection);
 
-    //recorrer cada link y recuperar datos
+      //recorrer cada link y recuperar datos
 
-    //volver a pagina anterior(tabla)
+      //volver a pagina anterior(tabla)
 
-    //se recupera siguiente pagina
-    nextPage = getNextPage(page);
+      //se recupera siguiente pagina
+      nextPage = await getNextPage(page);
+      console.log("objeto nextPage"+JSON.stringify(nextPage));
 
-    //si no es pagina final, ir a la siguiente pagina
-    if (!nextPage.isLast) {
-      await page.goto(nextPage.href);
-      previousPage = nextPage.href;
+      //si no es pagina final, ir a la siguiente pagina
+      if (!nextPage.isLast) {
+        await page.goto(nextPage.href);
+        previousPage = nextPage.href;
+      }
     }
+    console.log(
+      "-------- Se termina de recorrer productos en subcategoria -------- "
+    );
+  } catch (e) {
+    //console.log(e);
   }
 
   return true;
