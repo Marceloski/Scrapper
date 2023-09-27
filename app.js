@@ -63,6 +63,7 @@ async function getProductData(page) {
 
 async function getProductDataFromTable(page, newSubcategory) {
   await page.goto(newSubcategory);
+  //previousPage permite volver a la pagina anterior, despues de haber entrado a la pagina de un producto
   let previousPage = newSubcategory;
   //se inicializa nextPage no siendo pagina final
   let nextPage = { isLast: false };
@@ -80,7 +81,7 @@ async function getProductDataFromTable(page, newSubcategory) {
 
       //se recupera siguiente pagina
       nextPage = await getNextPage(page);
-      console.log("objeto nextPage"+JSON.stringify(nextPage));
+      //console.log("objeto nextPage"+JSON.stringify(nextPage));
 
       //si no es pagina final, ir a la siguiente pagina
       if (!nextPage.isLast) {
