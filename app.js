@@ -1,60 +1,91 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
-const { error } = require("console");
+const { error, table } = require("console");
 
-// async function getTableHeadElements(page) {
+// async function retryPageGoto(page, url, maxRetries = 3) {
+//   let retries = 0;
+//   while (retries < maxRetries) {
+//     try {
+//       await page.goto(url);
+//       return; // Navigation succeeded, exit the loop
+//     } catch (error) {
+//       console.error(
+//         `Error navigating to ${url}, retrying...` + "(" + retries + ")"
+//       );
+//       retries++;
+//       // You can adjust the delay time between retries as needed
+//       await new Promise((r) => setTimeout(r, 3000));
+//     }
+//   }
+//   throw new Error(`Failed to navigate to ${url} after ${maxRetries} retries.`);
+// }
+
+// async function getProductsPagesInTable(page) {
 //   return await page.evaluate(() => {
 //     const mainContainer = document.getElementById("paraSearch");
 //     const tableElement = mainContainer.querySelector("table");
-//     const tableHead = tableElement.querySelector("thead");
-//     const tableHeadRow = tableHead.querySelector("tr");
-//     const tableHeadElements = tableHeadRow.children;
-//     const tableHeadElementsData = [];
+//     const productsRowsInTable = tableElement.querySelectorAll(".productRow ");
+//     const productsPageCollection = [];
 
-//     for (let i = 1; i < tableHeadElements.length; i++) {
-//       const tableHeadElement = tableHeadElements[i];
+//     productsRowsInTable.forEach((productRow) => {
+//       const productImageElement = productRow.querySelector(".productImage");
+//       const a_element = productImageElement.querySelector("a");
 
-//       tableHeadElementsData.push(tableHeadElement.textContent.trim());
-//     }
-
-//     return tableHeadElementsData;
+//       productsPageCollection.push(a_element.getAttribute("href"));
+//     });
+//     return productsPageCollection;
 //   });
 // }
 
-async function retryPageGoto(page, url, maxRetries = 3) {
-  let retries = 0;
-  while (retries < maxRetries) {
-    try {
-      await page.goto(url);
-      return; // Navigation succeeded, exit the loop
-    } catch (error) {
-      console.error(`Error navigating to ${url}, retrying...`);
-      retries++;
-      // You can adjust the delay time between retries as needed
-      await new Promise((r) => setTimeout(r, 3000));
-    }
-  }
-  throw new Error(`Failed to navigate to ${url} after ${maxRetries} retries.`);
-}
+// async function getProductData(page) {
+//   await page.waitForSelector("#product");
+//   console.log("Entra en getProductData");
+//   return true;
+//   //recuperar datos
+// }
 
-async function getProductsLinksInTable(page) {
-  return await page.evaluate(() => {
-    const mainContainer = document.getElementById("paraSearch");
-    const tableElement = mainContainer.querySelector("table");
-    const productsRowsInTable = tableElement.querySelectorAll(".productRow ");
-    const productsPageCollection = [];
+// async function getProductDataFromTable(page, subcategory) {
+//   if (subcategory) await page.goto(subcategory);
+//   //previousPage permite volver a la pagina anterior, despues de haber entrado a la pagina de un producto
+//   let previousPage = subcategory;
+//   //se inicializa nextPage no siendo pagina final
+//   let nextPage = { isLast: false };
+//   const productDataFromTable = [];
 
-    productsRowsInTable.forEach((productRow) => {
-      const productImageElement = productRow.querySelector(".productImage");
-      const a_element = productImageElement.querySelector("a");
+//   try {
+//     while (!nextPage.isLast) {
+//       const productsPageCollection = await getProductsPagesInTable(page);
 
-      productsPageCollection.push(a_element.getAttribute("href"));
-    });
-    return productsPageCollection;
-  });
-}
+//       // Use a for...of loop to iterate over productsPageCollection
+//       for (const productPage of productsPageCollection) {
+//         try {
+//           await new Promise((r) => setTimeout(r, 500));
+//           await retryPageGoto(page, productPage);
+//           productDataFromTable.push(await getProductData(page));
+//         } catch (error) {
+//           console.error(error);
+//         }
+//       }
 
-async function getNextPage(page, previousPage) {
+//       await page.goto(previousPage);
+//       nextPage = await getNextPage(page, previousPage);
+
+//       if (!nextPage.isLast) {
+//         await page.goto(nextPage.href);
+//         previousPage = nextPage.href;
+//       }
+//     }
+//     console.log(
+//       "-------- Se termina de recorrer productos en subcategoria -------- "
+//     );
+//   } catch (e) {
+//     console.log(e);
+//   }
+
+//   return true;
+// }
+
+async function getNextPage(page) {
   try {
     await page.waitForSelector("#paraSearch");
     await page.waitForSelector(".paginLinks");
@@ -70,48 +101,124 @@ async function getNextPage(page, previousPage) {
     });
   } catch (e) {
     console.log(e);
-    console.log("pagina del error: " + previousPage);
+    return;
+    //console.log("pagina del error: " + previousPage);
   }
 }
 
-async function getProductData(page) {
-  await page.waitForSelector("#product");
-  console.log("Entra en getProductData");
-  return true;
-  //recuperar datos
+async function getTablePageData(page, tableHeadElements) {
+  try {
+    await page.waitForSelector("#paraSearch");
+    return await page.evaluate((tableHeadElements) => {
+      const mainContainer = document.getElementById("paraSearch");
+      const tableElement = mainContainer.querySelector("table");
+      const tableBodyElement = tableElement.querySelector("tbody");
+      const tableRows = tableBodyElement.querySelectorAll(".productRow");
+      const tableProductData = [];
+
+      //recorriendo filas de la tabla (recorriendo filas de productos en tabla)
+      for (let i = 0; i < tableRows.length; i++) {
+        //obteniendo las casillas de una fila
+        const tableRowData = tableRows[i].children;
+        const productObj = {};
+
+        //se empieza a iterar desde la segunda casilla, ya que la primera esta vacia (recorriendo datos de productos en tabla)
+        for (let j = 1; j < tableRowData.length; j++) {
+          switch (j) {
+            case 1:
+              const imgElement = tableRowData[j].querySelector("img");
+
+              productObj[tableHeadElements[j]] =
+                imgElement.getAttribute("title");
+              productObj.imgSrc = imgElement.getAttribute("data-src");
+              break;
+
+            case 2:
+              break;
+
+            case 3:
+              break;
+
+            case 4:
+              break;
+
+            case 5:
+              break;
+
+            case 6:
+              break;
+
+            case 7:
+              break;
+
+            default:
+              //agregar a descripcion del producto
+              break;
+          }
+        }
+        tableProductData.push(productObj);
+      }
+
+      return tableProductData;
+    }, tableHeadElements);
+  } catch (e) {
+    console.log(e);
+    return;
+  }
 }
 
-async function getProductDataFromTable(page, newSubcategory) {
-  await page.goto(newSubcategory);
-  //previousPage permite volver a la pagina anterior, despues de haber entrado a la pagina de un producto
-  let previousPage = newSubcategory;
+async function getTableHeadElements(page) {
+  try {
+    await page.waitForSelector("#paraSearch");
+    return await page.evaluate(() => {
+      const mainContainer = document.getElementById("paraSearch");
+      const tableElement = mainContainer.querySelector("table");
+      const tableHead = tableElement.querySelector("thead");
+      const tableHeadRow = tableHead.querySelector("tr");
+      const tableHeadElements = tableHeadRow.children;
+      const tableHeadElementsData = [];
+
+      for (let i = 1; i < tableHeadElements.length; i++) {
+        const tableHeadElement = tableHeadElements[i];
+
+        tableHeadElementsData.push(tableHeadElement.textContent.trim());
+      }
+
+      return tableHeadElementsData;
+    });
+  } catch (e) {
+    console.log(e);
+    return;
+  }
+}
+
+async function getProductDataFromTable(page, subcategory) {
+  /*esta validacion sirve para saber si la funcion se esta invocando en una nueva subcategoria (existe parametro subcategory)
+  o se esta invocando en una subcategoria (parametro subcategory es null)*/
+  if (subcategory) await page.goto(subcategory);
+
   //se inicializa nextPage no siendo pagina final
   let nextPage = { isLast: false };
+
   const productDataFromTable = [];
 
   try {
     while (!nextPage.isLast) {
-      const productsPageCollection = await getProductsLinksInTable(page);
+      await new Promise((r) => setTimeout(r, 1000));
+      nextPage = await getNextPage(page);
 
-      // Use a for...of loop to iterate over productsPageCollection
-      for (const productPage of productsPageCollection) {
-        try {
-          await new Promise((r) => setTimeout(r, 1000));
-          await retryPageGoto(page, productPage);
-          productDataFromTable.push(await getProductData(page));
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      await page.goto(previousPage);
-      nextPage = await getNextPage(page, previousPage);
+      const tableHeadElements = await getTableHeadElements(page);
+      const tablePageData = await getTablePageData(page, tableHeadElements);
 
       if (!nextPage.isLast) {
         await page.goto(nextPage.href);
-        previousPage = nextPage.href;
       }
+      console.log(
+        "datos de productos en tabla de pagina:" + JSON.stringify(tablePageData)
+      );
+      //productDataFromTable.push(tablePageData);
     }
+    //console.log(productDataFromTable);
     console.log(
       "-------- Se termina de recorrer productos en subcategoria -------- "
     );
@@ -179,7 +286,7 @@ async function getAllProducts(page, categoriesCollection) {
 
         //recorrer nuevas subcategorias
         for (const newSubcategory of newSubcategories) {
-          //agregar datos de productos que se encuentran en subcategoria
+          //agregar datos de productos que se encuentran en nueva subcategoria
           subcategoryProductsCollection.push(
             //recupera los datos de productos que estan en la tabla
             await getProductDataFromTable(page, newSubcategory)
@@ -193,11 +300,11 @@ async function getAllProducts(page, categoriesCollection) {
           //agregar datos de productos que se encuentran en subcategoria
           subcategoryProductsCollection.push(
             //recupera los datos de productos que estan en la tabla
-            await getProductDataFromTable(page, subcategory)
+            await getProductDataFromTable(page, null)
           );
           //si es una posible pagina de producto
         } else {
-          //verificar si es pagina de producto, recuperar datos de el
+          //verificar si es pagina de producto, recuperar datos de ella
         }
       }
       categoryProductsCollection.push(subcategoryProductsCollection);
@@ -237,8 +344,6 @@ async function getAllCategories(page) {
     } else {
       console.log("No existe mainContainer");
     }
-    //debugger; // Pause execution here
-
     return categoriesCollection;
   });
   return categoriesCollection;
