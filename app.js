@@ -192,11 +192,7 @@ async function getTableHeadElements(page) {
   }
 }
 
-async function getProductDataFromTable(page, subcategory) {
-  /*esta validacion sirve para saber si la funcion se esta invocando en una nueva subcategoria (existe parametro subcategory)
-  o se esta invocando en una subcategoria (parametro subcategory es null)*/
-  if (subcategory) await page.goto(subcategory);
-
+async function getProductDataFromTable(page) {
   //se inicializa nextPage no siendo pagina final
   let nextPage = { isLast: false };
 
@@ -213,12 +209,9 @@ async function getProductDataFromTable(page, subcategory) {
       if (!nextPage.isLast) {
         await page.goto(nextPage.href);
       }
-      console.log(
-        "datos de productos en tabla de pagina:" + JSON.stringify(tablePageData)
-      );
-      //productDataFromTable.push(tablePageData);
+      productDataFromTable.push(...tablePageData);
     }
-    //console.log(productDataFromTable);
+    console.log(productDataFromTable);
     console.log(
       "-------- Se termina de recorrer productos en subcategoria -------- "
     );
@@ -271,7 +264,7 @@ async function getAllProducts(page, categoriesCollection) {
   for (const category of categoriesCollection) {
     const categoryProductsCollection = [];
     for (const subcategory of category.subcategories) {
-      const subcategoryProductsCollection = [];
+      const subcategoriesProductsCollection = [];
 
       //entra en subcategoria
       await page.goto(subcategory);
@@ -286,10 +279,10 @@ async function getAllProducts(page, categoriesCollection) {
 
         //recorrer nuevas subcategorias
         for (const newSubcategory of newSubcategories) {
+          await page.goto(newSubcategory);
           //agregar datos de productos que se encuentran en nueva subcategoria
-          subcategoryProductsCollection.push(
-            //recupera los datos de productos que estan en la tabla
-            await getProductDataFromTable(page, newSubcategory)
+          subcategoriesProductsCollection.push(
+            await getProductDataFromTable(page) //recupera los datos de productos que estan en la tabla
           );
 
           await new Promise((r) => setTimeout(r, 1000));
@@ -298,18 +291,19 @@ async function getAllProducts(page, categoriesCollection) {
         //Si no tiene mas subcategorias
         if (!hasMoreSubCategories) {
           //agregar datos de productos que se encuentran en subcategoria
-          subcategoryProductsCollection.push(
-            //recupera los datos de productos que estan en la tabla
-            await getProductDataFromTable(page, null)
+          subcategoriesProductsCollection.push(
+            await getProductDataFromTable(page) //recupera los datos de productos que estan en la tabla
           );
           //si es una posible pagina de producto
         } else {
           //verificar si es pagina de producto, recuperar datos de ella
         }
       }
-      categoryProductsCollection.push(subcategoryProductsCollection);
+      console.log("-------- Se termina de recorrer subcategoria -------- ");
+      categoryProductsCollection.push(subcategoriesProductsCollection);
       await new Promise((r) => setTimeout(r, 1000));
     }
+    console.log("-------- Se termina de recorrer categoria -------- ");
     productsCollection.push(categoryProductsCollection);
   }
   return productsCollection;
