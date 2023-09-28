@@ -96,7 +96,7 @@ async function getProductDataFromTable(page, newSubcategory) {
       // Use a for...of loop to iterate over productsPageCollection
       for (const productPage of productsPageCollection) {
         try {
-          await new Promise((r) => setTimeout(r, 3000));
+          await new Promise((r) => setTimeout(r, 1000));
           await retryPageGoto(page, productPage);
           productDataFromTable.push(await getProductData(page));
         } catch (error) {
@@ -185,7 +185,7 @@ async function getAllProducts(page, categoriesCollection) {
             await getProductDataFromTable(page, newSubcategory)
           );
 
-          await new Promise((r) => setTimeout(r, 3000));
+          await new Promise((r) => setTimeout(r, 1000));
         }
       } else {
         //Si no tiene mas subcategorias
@@ -201,7 +201,7 @@ async function getAllProducts(page, categoriesCollection) {
         }
       }
       categoryProductsCollection.push(subcategoryProductsCollection);
-      await new Promise((r) => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 1000));
     }
     productsCollection.push(categoryProductsCollection);
   }
@@ -251,7 +251,6 @@ async function App() {
     headless: false,
   });
   const page = await browser.newPage();
-  await page.setUserAgent("Chrome/99.0.1234.0");
   const categoriesCollection = await getAllCategories(page);
   const productsCollection = await getAllProducts(page, categoriesCollection);
 
