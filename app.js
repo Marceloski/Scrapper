@@ -1,91 +1,8 @@
 const puppeteer = require("puppeteer");
-const puppeteerExtra = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const puppeteerExtra = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
 puppeteerExtra.use(StealthPlugin());
-
-// async function retryPageGoto(page, url, maxRetries = 3) {
-//   let retries = 0;
-//   while (retries < maxRetries) {
-//     try {
-//       await page.goto(url);
-//       return; // Navigation succeeded, exit the loop
-//     } catch (error) {
-//       console.error(
-//         `Error navigating to ${url}, retrying...` + "(" + retries + ")"
-//       );
-//       retries++;
-//       // You can adjust the delay time between retries as needed
-//       await new Promise((r) => setTimeout(r, 3000));
-//     }
-//   }
-//   throw new Error(`Failed to navigate to ${url} after ${maxRetries} retries.`);
-// }
-
-// async function getProductsPagesInTable(page) {
-//   return await page.evaluate(() => {
-//     const mainContainer = document.getElementById("paraSearch");
-//     const tableElement = mainContainer.querySelector("table");
-//     const productsRowsInTable = tableElement.querySelectorAll(".productRow ");
-//     const productsPageCollection = [];
-
-//     productsRowsInTable.forEach((productRow) => {
-//       const productImageElement = productRow.querySelector(".productImage");
-//       const a_element = productImageElement.querySelector("a");
-
-//       productsPageCollection.push(a_element.getAttribute("href"));
-//     });
-//     return productsPageCollection;
-//   });
-// }
-
-// async function getProductData(page) {
-//   await page.waitForSelector("#product");
-//   console.log("Entra en getProductData");
-//   return true;
-//   //recuperar datos
-// }
-
-// async function getProductDataFromTable(page, subcategory) {
-//   if (subcategory) await page.goto(subcategory);
-//   //previousPage permite volver a la pagina anterior, despues de haber entrado a la pagina de un producto
-//   let previousPage = subcategory;
-//   //se inicializa nextPage no siendo pagina final
-//   let nextPage = { isLast: false };
-//   const productDataFromTable = [];
-
-//   try {
-//     while (!nextPage.isLast) {
-//       const productsPageCollection = await getProductsPagesInTable(page);
-
-//       // Use a for...of loop to iterate over productsPageCollection
-//       for (const productPage of productsPageCollection) {
-//         try {
-//           await new Promise((r) => setTimeout(r, 500));
-//           await retryPageGoto(page, productPage);
-//           productDataFromTable.push(await getProductData(page));
-//         } catch (error) {
-//           console.error(error);
-//         }
-//       }
-
-//       await page.goto(previousPage);
-//       nextPage = await getNextPage(page, previousPage);
-
-//       if (!nextPage.isLast) {
-//         await page.goto(nextPage.href);
-//         previousPage = nextPage.href;
-//       }
-//     }
-//     console.log(
-//       "-------- Se termina de recorrer productos en subcategoria -------- "
-//     );
-//   } catch (e) {
-//     console.log(e);
-//   }
-
-//   return true;
-// }
 
 async function getNextPage(page) {
   try {
@@ -115,20 +32,20 @@ async function getTablePageData(page, tableHeadElements) {
       await new Promise((resolve) => {
         const scrollInterval = setInterval(() => {
           // Desplaza la página hacia abajo
-          window.scrollBy(0, 500); // Ajusta la cantidad de desplazamiento según tus necesidades
+          window.scrollBy(0, 1500); // Ajusta la cantidad de desplazamiento según tus necesidades
         }, 1000); // Intervalo entre desplazamientos en milisegundos
-  
+
         // Detén la simulación después de cierto tiempo (por ejemplo, 10 segundos)
         setTimeout(() => {
           clearInterval(scrollInterval);
           resolve();
-        }, 7000); // 10 segundos
+        }, 3000); // 10 segundos
       });
       const mainContainer = document.getElementById("paraSearch");
       const tableElement = mainContainer.querySelector("table");
       const tableBodyElement = tableElement.querySelector("tbody");
       const tableRows = tableBodyElement.querySelectorAll(".productRow");
-      const tableProductData = [];
+      const tablePageData = [];
 
       //recorriendo filas de la tabla (recorriendo filas de productos en tabla)
       for (let i = 0; i < tableRows.length; i++) {
@@ -139,19 +56,20 @@ async function getTablePageData(page, tableHeadElements) {
         //se empieza a iterar desde la segunda casilla, ya que la primera esta vacia (recorriendo datos de productos en tabla)
         for (let j = 1; j < tableRowData.length; j++) {
           switch (j) {
+            //manufacturerPartNo y imgSrc
             case 1:
               const imgElement = tableRowData[j].querySelector("img");
 
               productObj.manufacturerPartNo = imgElement.getAttribute("title");
               productObj.imgSrc = imgElement.getAttribute("data-src");
               break;
-
+            //newarkPartNo
             case 2:
               const skuElement = tableRowData[j].querySelector(".sku");
 
               productObj.newarkPartNo = skuElement.textContent.trim();
               break;
-
+            //description y manufacturer
             case 3:
               const descriptionElement =
                 tableRowData[j].querySelector(".productDecription");
@@ -161,12 +79,12 @@ async function getTablePageData(page, tableHeadElements) {
               productObj.description = descriptionElement.textContent.trim();
               productObj.manufacturer = manufacturerElement.textContent.trim();
               break;
-
+            //stock
             case 4:
               const stockElements =
                 tableRowData[j].querySelectorAll(".enhanceInStkTxt");
 
-              if (stockElements) {
+              if (stockElements.length > 0) {
                 productObj.stock = {};
                 stockElements.forEach((stockInCountry) => {
                   const singleSpanElement =
@@ -195,7 +113,7 @@ async function getTablePageData(page, tableHeadElements) {
               }
 
               break;
-
+            //priceFor (cantidad que se basa el precio expuesto)
             case 5:
               const priceForElement =
                 tableRowData[j].querySelector(".priceFor");
@@ -214,10 +132,9 @@ async function getTablePageData(page, tableHeadElements) {
               break;
           }
         }
-        tableProductData.push(productObj);
+        tablePageData.push(productObj);
       }
-
-      return tableProductData;
+      return tablePageData;
     }, tableHeadElements);
   } catch (e) {
     console.log(e);
@@ -258,26 +175,23 @@ async function getProductDataFromTable(page) {
 
   try {
     while (!nextPage.isLast) {
-      //espera para cambiar entre paginas de la tabla
-      await new Promise((r) => setTimeout(r, 3000));
       nextPage = await getNextPage(page);
 
       const tableHeadElements = await getTableHeadElements(page);
       const tablePageData = await getTablePageData(page, tableHeadElements);
-
+      console.log(tablePageData);
       if (!nextPage.isLast) {
         await page.goto(nextPage.href);
       }
       productDataFromTable.push(...tablePageData);
     }
-    console.log(productDataFromTable);
+    //console.log(productDataFromTable);
     console.log(
       "-------- Se termina de recorrer productos en subcategoria -------- "
     );
   } catch (e) {
-    console.log(e);
+    console.log("Error en getProductDataFromTable" + e);
   }
-
   return true;
 }
 
@@ -298,24 +212,54 @@ async function getSubcategories(page) {
 }
 
 async function checkHasMoreSubCategories(page) {
-  //si no existe paraSearch da error y termina codigo
-  //await page.waitForSelector("#paraSearch");
-  return await page.evaluate(() => {
-    const mainContainer = document.getElementById("paraSearch");
-    if (mainContainer) {
-      const tableExists = mainContainer.querySelector("table");
-      if (tableExists) {
-        // Hay productos
-        return false;
-      } else {
-        // No hay productos
-        return true;
+  try {
+    await page.waitForSelector("#paraSearch");
+    return await page.evaluate(() => {
+      const mainContainer = document.getElementById("paraSearch");
+      if (mainContainer) {
+        const tableExists = mainContainer.querySelector("table");
+        if (tableExists) {
+          // no tiene mas subcategorias (Hay productos)
+          return false;
+        } else {
+          // si tiene mas subcategorias (No hay productos)
+          return true;
+        }
       }
-    } else {
-      //Es un producto
-      return null;
-    }
-  });
+    });
+  } catch (e) {
+    console.log("Error en checkHasMoreSubCategories: " + e);
+    //throw new Error("No se encontro el selector #paraSearch");
+  }
+}
+
+async function checkIsProductPage(page) {
+  try {
+    await page.waitForSelector("#paraSearch");
+    return await page.evaluate(() => {
+      const mainContainer = document.getElementById("paraSearch");
+      if (mainContainer) {
+        return false;
+      }
+    });
+  } catch (e) {
+    console.log("Error en checkIsProductPage: " + e);
+    //throw new Error("No se encontro el selector #paraSearch");
+  }
+  return true;
+}
+
+async function applyInStockFilter(subcategory) {
+  try {
+    var originalUrl = subcategory;
+    var regex = /https:\/\/www.newark.com\/c\/([^?]+)/;
+    var newString = originalUrl.replace(regex, function (match, categories) {
+      return "https://www.newark.com/w/c/" + categories + "?range=inc-in-stock";
+    });
+    return newString;
+  } catch (e) {
+    console.log("error en applyInStockFilter :" + e);
+  }
 }
 
 async function getAllProducts(page, categoriesCollection) {
@@ -328,51 +272,70 @@ async function getAllProducts(page, categoriesCollection) {
       //entra en subcategoria
       await page.goto(subcategory);
 
-      //revisa si subcategoria tiene mas subcategorias
-      const hasMoreSubCategories = await checkHasMoreSubCategories(page);
+      //revisar si es pagina de producto
+      const isProductPage = await checkIsProductPage(page);
 
-      //Si tiene mas subcategorias
-      if (hasMoreSubCategories) {
-        // Se recuperan las nuevas subcategorias
-        const newSubcategories = await getSubcategories(page);
+      if (!isProductPage) {
+        //revisa si subcategoria tiene mas subcategorias
+        const hasMoreSubCategories = await checkHasMoreSubCategories(page);
+        //Si tiene mas subcategorias
+        if (hasMoreSubCategories) {
+          // Se recuperan las nuevas subcategorias
+          const newSubcategories = await getSubcategories(page);
 
-        //recorrer nuevas subcategorias
-        for (const newSubcategory of newSubcategories) {
-          //espera para entrar a nuevas subcategorias
-          await new Promise((r) => setTimeout(r, 3000));
+          //recorrer nuevas subcategorias
+          for (const newSubcategory of newSubcategories) {
+            //espera para entrar a nuevas subcategorias
+            await new Promise((r) => setTimeout(r, 3000));
 
-          await page.goto(newSubcategory);
-          const newSubcategoryhasMoreSubCategories =
-            await checkHasMoreSubCategories(page);
+            //aplicar filtros de con stock a pagina de nueva subcategoria
+            const newUrl = await applyInStockFilter(newSubcategory);
 
-          //si nueva subcategoria tiene tabla (productos)
-          if (!newSubcategoryhasMoreSubCategories) {
-            //agregar datos de productos que se encuentran en nueva subcategoria
+            //entra en pagina de nueva subcategoria con filtros
+            await page.goto(newUrl);
+
+            //revisa si pagina de nueva subcategoria es pagina de producto
+            const isNewSubcategoryProductPage = await checkIsProductPage(page);
+
+            //si pagina de nueva subcategoria tiene tabla (productos)
+            if (!isNewSubcategoryProductPage) {
+              //agregar datos de productos que se encuentran en nueva subcategoria
+              subcategoriesProductsCollection.push(
+                await getProductDataFromTable(page) //recupera los datos de productos que estan en la tabla
+              );
+            } else {
+              console.log(
+                newUrl + " nueva subcategoria es pagina de producto"
+              );
+            }
+          }
+          //Si no tiene mas subcategorias
+        } else {
+          //aplicar filtros de con stock a pagina de subcategoria
+          const newUrl = await applyInStockFilter(subcategory);
+
+          //entra en pagina de subcategoria con filtros
+          await page.goto(newUrl);
+
+          //revisa si pagina de subcategoria con filtros es pagina de producto
+          const isSubcategoryProductPage = await checkIsProductPage(page);
+
+          //si nueva subcategoria con filtros tiene tabla (productos)
+          if (!isSubcategoryProductPage) {
+            //agregar datos de productos que se encuentran en subcategoria
             subcategoriesProductsCollection.push(
               await getProductDataFromTable(page) //recupera los datos de productos que estan en la tabla
             );
           } else {
-            //si es un producto
-            if (newSubcategoryhasMoreSubCategories === null) {
-              console.log(
-                "nueva subcategoria es pagina de producto " + newSubcategory
-              );
-            }
+            console.log(
+              newUrl + " subcategoria es pagina de producto"
+            );
           }
         }
       } else {
-        //Si no tiene mas subcategorias
-        if (!hasMoreSubCategories) {
-          //agregar datos de productos que se encuentran en subcategoria
-          subcategoriesProductsCollection.push(
-            await getProductDataFromTable(page) //recupera los datos de productos que estan en la tabla
-          );
-          //si es una posible pagina de producto
-        } else {
-          //verificar si es pagina de producto, recuperar datos de ella
-          console.log("subcategoria es pagina de producto" + subcategory);
-        }
+        console.log(subcategory + " subcategoria es pagina de producto");
       }
+
       console.log("-------- Se termina de recorrer subcategoria -------- ");
       categoryProductsCollection.push({
         category: category.category,
@@ -423,7 +386,7 @@ async function getAllCategories(page) {
 }
 
 async function App() {
-  const browser = await puppeteer.launch({
+  const browser = await puppeteerExtra.launch({
     executablePath:
       "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
     headless: false,
