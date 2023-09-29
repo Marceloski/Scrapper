@@ -110,6 +110,7 @@ async function getTablePageData(page, tableHeadElements) {
   try {
     await page.waitForSelector("#paraSearch");
     return await page.evaluate((tableHeadElements) => {
+      window.scrollBy(0, window.innerHeight * 2);
       const mainContainer = document.getElementById("paraSearch");
       const tableElement = mainContainer.querySelector("table");
       const tableBodyElement = tableElement.querySelector("tbody");
@@ -128,21 +129,65 @@ async function getTablePageData(page, tableHeadElements) {
             case 1:
               const imgElement = tableRowData[j].querySelector("img");
 
-              productObj[tableHeadElements[j]] =
-                imgElement.getAttribute("title");
+              productObj.manufacturerPartNo = imgElement.getAttribute("title");
               productObj.imgSrc = imgElement.getAttribute("data-src");
               break;
 
             case 2:
+              const skuElement = tableRowData[j].querySelector(".sku");
+
+              productObj.newarkPartNo = skuElement.textContent.trim();
               break;
 
             case 3:
+              const descriptionElement =
+                tableRowData[j].querySelector(".productDecription");
+              const manufacturerElement =
+                tableRowData[j].querySelector(".manufacturerName");
+
+              productObj.description = descriptionElement.textContent.trim();
+              productObj.manufacturer = manufacturerElement.textContent.trim();
               break;
 
             case 4:
+              const stockElements =
+                tableRowData[j].querySelectorAll(".enhanceInStkTxt");
+
+              if (stockElements) {
+                productObj.stock = {};
+                stockElements.forEach((stockInCountry) => {
+                  const singleSpanElement =
+                    stockInCountry.querySelector(".inStockBold");
+
+                  if (singleSpanElement) {
+                    productObj.stock.us = singleSpanElement.textContent.trim();
+                  } else {
+                    const elementText = stockInCountry.textContent.replace(
+                      /\s+/g,
+                      ""
+                    );
+                    const stock = stockInCountry
+                      .querySelector("span")
+                      .textContent.trim();
+
+                    if (elementText.indexOf("USwarehouse") !== -1) {
+                      productObj.stock.us = stock;
+                    } else if (elementText.indexOf("UKStock") !== -1) {
+                      productObj.stock.uk = stock;
+                    }
+                  }
+                });
+              } else {
+                productObj.stock = "sin stock";
+              }
+
               break;
 
             case 5:
+              const priceForElement =
+                tableRowData[j].querySelector(".priceFor");
+
+              productObj.priceFor = priceForElement.textContent.trim();
               break;
 
             case 6:
@@ -158,6 +203,7 @@ async function getTablePageData(page, tableHeadElements) {
         }
         tableProductData.push(productObj);
       }
+      debugger;
 
       return tableProductData;
     }, tableHeadElements);
