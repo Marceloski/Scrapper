@@ -1,6 +1,8 @@
 const puppeteer = require("puppeteer");
-const fs = require("fs");
-const { error, table } = require("console");
+const puppeteerExtra = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteerExtra.use(StealthPlugin());
 
 // async function retryPageGoto(page, url, maxRetries = 3) {
 //   let retries = 0;
@@ -109,8 +111,19 @@ async function getNextPage(page) {
 async function getTablePageData(page, tableHeadElements) {
   try {
     await page.waitForSelector("#paraSearch");
-    return await page.evaluate((tableHeadElements) => {
-      window.scrollBy(0, window.innerHeight * 2);
+    return await page.evaluate(async (tableHeadElements) => {
+      await new Promise((resolve) => {
+        const scrollInterval = setInterval(() => {
+          // Desplaza la página hacia abajo
+          window.scrollBy(0, 500); // Ajusta la cantidad de desplazamiento según tus necesidades
+        }, 1000); // Intervalo entre desplazamientos en milisegundos
+  
+        // Detén la simulación después de cierto tiempo (por ejemplo, 10 segundos)
+        setTimeout(() => {
+          clearInterval(scrollInterval);
+          resolve();
+        }, 7000); // 10 segundos
+      });
       const mainContainer = document.getElementById("paraSearch");
       const tableElement = mainContainer.querySelector("table");
       const tableBodyElement = tableElement.querySelector("tbody");
@@ -203,7 +216,6 @@ async function getTablePageData(page, tableHeadElements) {
         }
         tableProductData.push(productObj);
       }
-      debugger;
 
       return tableProductData;
     }, tableHeadElements);
