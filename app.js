@@ -20,26 +20,26 @@ async function getNextPage(page) {
     });
   } catch (e) {
     console.log(e);
-    return;
     //console.log("pagina del error: " + previousPage);
   }
+  return null;
 }
 
 async function getTablePageData(page, tableHeadElements) {
   try {
     await page.waitForSelector("#paraSearch");
     return await page.evaluate(async (tableHeadElements) => {
+      // Simula desplazamiento de página hacia abajo
       await new Promise((resolve) => {
         const scrollInterval = setInterval(() => {
-          // Desplaza la página hacia abajo
           window.scrollBy(0, 1500); // Ajusta la cantidad de desplazamiento según tus necesidades
         }, 1000); // Intervalo entre desplazamientos en milisegundos
 
-        // Detén la simulación después de cierto tiempo (por ejemplo, 10 segundos)
+        // Se detiene simulacion
         setTimeout(() => {
           clearInterval(scrollInterval);
           resolve();
-        }, 3000); // 10 segundos
+        }, 3000); // 3 segundos
       });
       const mainContainer = document.getElementById("paraSearch");
       const tableElement = mainContainer.querySelector("table");
@@ -138,8 +138,8 @@ async function getTablePageData(page, tableHeadElements) {
     }, tableHeadElements);
   } catch (e) {
     console.log(e);
-    return;
   }
+  return;
 }
 
 async function getTableHeadElements(page) {
@@ -163,8 +163,8 @@ async function getTableHeadElements(page) {
     });
   } catch (e) {
     console.log(e);
-    return;
   }
+  return;
 }
 
 async function getProductDataFromTable(page, subcategory) {
@@ -177,13 +177,17 @@ async function getProductDataFromTable(page, subcategory) {
     while (!nextPage.isLast) {
       nextPage = await getNextPage(page);
 
-      const tableHeadElements = await getTableHeadElements(page);
-      const tablePageData = await getTablePageData(page, tableHeadElements);
-      //console.log(tablePageData);
-      if (!nextPage.isLast) {
-        await page.goto(nextPage.href);
+      if (nextPage != null) {
+        const tableHeadElements = await getTableHeadElements(page);
+        const tablePageData = await getTablePageData(page, tableHeadElements);
+        //console.log(tablePageData);
+        if (!nextPage.isLast) {
+          await page.goto(nextPage.href);
+        }
+        productDataFromTable.push(...tablePageData);
+      } else {
+        throw new Error("nextPage es null");
       }
-      productDataFromTable.push(...tablePageData);
     }
     //console.log(productDataFromTable);
     console.log(
@@ -191,10 +195,11 @@ async function getProductDataFromTable(page, subcategory) {
         subcategory +
         " -------- "
     );
+    return true;
   } catch (e) {
-    console.log("Error en getProductDataFromTable" + e);
+    console.log("Error en getProductDataFromTable " + subcategory + " " + e);
   }
-  return true;
+  return false;
 }
 
 async function getSubcategories(page) {
@@ -264,110 +269,76 @@ async function applyInStockFilter(subcategory) {
     });
     return newString;
   } catch (e) {
-    console.log("Error en applyInStockFilter :" + e);
+    console.log("Error en applyInStockFilter");
+    throw new Error(e);
   }
 }
 
-async function getAllProducts(page, categoriesCollection) {
-  const productsCollection = [];
+async function getProductsDataFromSubcategory(
+  page,
+  subcategory,
+  isFiltersApplied
+) {
+  await page.goto(subcategory);
+
+  if (await checkIsProductPage(page)) {
+    console.log(
+      "-------- Subcategoria " + subcategory + " es pagina de producto --------"
+    );
+  } else {
+    let subcategoryWithFilters = subcategory;
+    try {
+      if (!isFiltersApplied) {
+        subcategoryWithFilters = await applyInStockFilter(subcategory);
+        isFiltersApplied = true;
+      }
+    } catch (e) {
+      console.log("Error al aplicar filtros a subcategoria: " + subcategory);
+      console.log("Mensaje de error: " + e);
+      console.log("Se sigue proceso sin aplicar filtros");
+    }
+    await page.goto(subcategoryWithFilters);
+
+    if (await checkHasMoreSubCategories(page)) {
+      const moreSubcategories = await getSubcategories(page);
+      for (const newSubcategory of moreSubcategories) {
+        await new Promise((r) => setTimeout(r, 3000));
+        await getProductsDataFromSubcategory(
+          page,
+          newSubcategory,
+          isFiltersApplied
+        );
+      }
+    } else {
+      await getProductDataFromTable(page, subcategoryWithFilters);
+    }
+  }
+}
+
+async function getAllProductsData(page, categoriesCollection) {
   for (const category of categoriesCollection) {
-    const categoryProductsCollection = [];
     for (
       let i = category.subcategories.length - 1;
       i < category.subcategories.length;
       i++
     ) {
-      const subcategoriesProductsCollection = [];
-      const subcategory = category.subcategories[i];
-
-      //entra en subcategoria
-      await page.goto(subcategory);
-
-      //revisar si es pagina de producto
-      const isProductPage = await checkIsProductPage(page);
-
-      if (!isProductPage) {
-        //aplicar filtros de con stock a pagina de categoria
-        const newUrl = await applyInStockFilter(subcategory);
-
-        //entra en pagina de nueva subcategoria con filtros
-        await page.goto(newUrl);
-
-        //revisa si subcategoria tiene mas subcategorias
-        const hasMoreSubCategories = await checkHasMoreSubCategories(page);
-
-        //Si tiene mas subcategorias
-        if (hasMoreSubCategories) {
-          // Se recuperan las nuevas subcategorias
-          let newSubcategories;
-
-          try {
-            newSubcategories = await getSubcategories(page);
-          } catch (e) {
-            console.log("Error al obtener subCategories: " + e);
-            break;
-          }
-
-          //recorrer nuevas subcategorias
-          for (const newSubcategory of newSubcategories) {
-            //espera para entrar a nuevas subcategorias
-            await new Promise((r) => setTimeout(r, 3000));
-
-            await page.goto(newSubcategory);
-
-            //revisa si pagina de nueva subcategoria es pagina de producto
-            const isNewSubcategoryProductPage = await checkIsProductPage(page);
-
-            //si pagina de nueva subcategoria tiene tabla (productos)
-            if (!isNewSubcategoryProductPage) {
-              //agregar datos de productos que se encuentran en nueva subcategoria
-              subcategoriesProductsCollection.push(
-                await getProductDataFromTable(page, newSubcategory) //recupera los datos de productos que estan en la tabla
-              );
-            } else {
-              console.log(
-                newSubcategory + " nueva subcategoria es pagina de producto"
-              );
-            }
-          }
-          //Si no tiene mas subcategorias
-        } else {
-          //revisa si pagina de subcategoria con filtros es pagina de producto
-          const isSubcategoryProductPage = await checkIsProductPage(page);
-
-          //si nueva subcategoria con filtros tiene tabla (productos)
-          if (!isSubcategoryProductPage) {
-            //agregar datos de productos que se encuentran en subcategoria
-            subcategoriesProductsCollection.push(
-              await getProductDataFromTable(page, newUrl) //recupera los datos de productos que estan en la tabla
-            );
-          } else {
-            console.log(subcategory + " subcategoria es pagina de producto");
-          }
-        }
-      } else {
-        console.log(subcategory + " subcategoria es pagina de producto");
-      }
-
-      console.log(
-        "-------- Se termina de recorrer subcategoria " +
-          subcategory +
-          " -------- "
+      var isFiltersApplied = false;
+      await getProductsDataFromSubcategory(
+        page,
+        category.subcategories[i],
+        isFiltersApplied
       );
-      categoryProductsCollection.push({
-        category: category.category,
-        productsCollection: subcategoriesProductsCollection,
-      });
 
       //espera para cambiar entre subcategorias
       await new Promise((r) => setTimeout(r, 3000));
     }
     console.log(
-      "-------- Se termina de recorrer categoria " + category.category + " -------- "
+      "-------- Se termina de recorrer categoria " +
+        category.category +
+        " -------- "
     );
-    productsCollection.push(categoryProductsCollection);
   }
-  return productsCollection;
+  return true;
 }
 
 async function getAllCategories(page) {
@@ -412,10 +383,12 @@ async function App() {
   });
   const page = await browser.newPage();
   const categoriesCollection = await getAllCategories(page);
-  const productsCollection = await getAllProducts(page, categoriesCollection);
 
-  //console.log(categoriesCollection);
-  //console.log(productsCollection);
+  try {
+    await getAllProductsData(page, categoriesCollection);
+  } catch (e) {
+    console.log("Error al recuperar datos de los productos " + e);
+  }
 
   await browser.close();
 }
