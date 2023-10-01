@@ -205,6 +205,7 @@ async function getProductDataFromTable(page, subcategory) {
 async function getSubcategories(page) {
   try {
     return await page.evaluate(() => {
+      debugger;
       const subcategories = [];
       const mainContainer = document.getElementById("paraSearch");
       const nav = mainContainer.querySelector("nav");
@@ -223,7 +224,27 @@ async function getSubcategories(page) {
   }
 }
 
-async function checkHasMoreSubCategories(page) {
+async function checkHasMoreSubcategories(page) {
+  try {
+    await page.waitForSelector("#paraSearch");
+    return await page.evaluate(() => {
+      const mainContainer = document.getElementById("paraSearch");
+      if (mainContainer) {
+        const categoryContainer =
+          mainContainer.querySelector(".categoryContainer");
+        if (categoryContainer) {
+          return true;
+        }
+      }
+      return false;
+    });
+  } catch (e) {
+    console.log("Error en checkHasMoreSubcategories: " + e);
+  }
+  return false;
+}
+
+async function checkHasProductTable(page) {
   try {
     await page.waitForSelector("#paraSearch");
     return await page.evaluate(() => {
@@ -231,16 +252,13 @@ async function checkHasMoreSubCategories(page) {
       if (mainContainer) {
         const tableExists = mainContainer.querySelector("table");
         if (tableExists) {
-          // no tiene mas subcategorias (Hay productos)
-          return false;
-        } else {
-          // si tiene mas subcategorias (No hay productos)
           return true;
         }
       }
+      return false;
     });
   } catch (e) {
-    console.log("Error en checkHasMoreSubCategories: " + e);
+    console.log("Error en checkHasProductTable: " + e);
   }
   return false;
 }
@@ -299,34 +317,45 @@ async function getProductsDataFromSubcategory(
     }
     await page.goto(subcategoryWithFilters);
 
-    if (await checkHasMoreSubCategories(page)) {
-      const moreSubcategories = await getSubcategories(page);
-      for (const newSubcategory of moreSubcategories) {
-        await new Promise((r) => setTimeout(r, 3000));
-        await getProductsDataFromSubcategory(
-          page,
-          newSubcategory,
-          isFiltersApplied
-        );
-      }
-    } else {
+    if (await checkHasProductTable(page)) {
       await getProductDataFromTable(page, subcategoryWithFilters);
+    } else {
+      if (await checkHasMoreSubcategories(page)) {
+        const moreSubcategories = await getSubcategories(page);
+        for (const newSubcategory of moreSubcategories) {
+          await new Promise((r) => setTimeout(r, 3000));
+          await getProductsDataFromSubcategory(
+            page,
+            newSubcategory,
+            isFiltersApplied
+          );
+        }
+      } else {
+        console.log("url " + subcategoryWithFilters + " es pagina en blanco");
+      }
     }
   }
 }
 
 async function getAllProductsData(page, categoriesCollection) {
-  for (const category of categoriesCollection) {
+  //29
+  for (let i = 29; i < categoriesCollection.length; i++) {
     for (
-      let i = category.subcategories.length - 1;
-      i < category.subcategories.length;
-      i++
+      let j = categoriesCollection[i].subcategories.length - 1;
+      j < categoriesCollection[i].subcategories.length;
+      j++
     ) {
       var isFiltersApplied = false;
       await getProductsDataFromSubcategory(
         page,
-        category.subcategories[i],
+        categoriesCollection[i].subcategories[j],
         isFiltersApplied
+      );
+
+      console.log(
+        "-------- Se termina de recorrer subcategoria general " +
+          categoriesCollection[i].subcategories[j] +
+          " -------- "
       );
 
       //espera para cambiar entre subcategorias
@@ -334,7 +363,7 @@ async function getAllProductsData(page, categoriesCollection) {
     }
     console.log(
       "-------- Se termina de recorrer categoria " +
-        category.category +
+        categoriesCollection[i].category +
         " -------- "
     );
   }
@@ -390,6 +419,7 @@ async function App() {
     console.log("Error al recuperar datos de los productos " + e);
   }
 
+  console.log("-------- Se termina ejecucion scraping Newark -------- ");
   await browser.close();
 }
 
