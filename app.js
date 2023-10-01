@@ -265,17 +265,18 @@ async function checkHasProductTable(page) {
 
 async function checkIsProductPage(page) {
   try {
-    await page.waitForSelector("#paraSearch");
+    await page.waitForSelector("#bodyContainer");
     return await page.evaluate(() => {
-      const mainContainer = document.getElementById("paraSearch");
-      if (mainContainer) {
-        return false;
+      const mainContainer = document.getElementById("bodyContainer");
+      const productSection = mainContainer.querySelector("#product");
+      if (productSection) {
+        return true;
       }
+      return false;
     });
   } catch (e) {
     console.log("Error en checkIsProductPage: " + e);
   }
-  return true;
 }
 
 async function applyInStockFilter(subcategory) {
@@ -301,7 +302,7 @@ async function getProductsDataFromSubcategory(
 
   if (await checkIsProductPage(page)) {
     console.log(
-      "-------- Subcategoria " + subcategory + " es pagina de producto --------"
+      "Aviso:" + subcategory + " es pagina de producto."
     );
   } else {
     let subcategoryWithFilters = subcategory;
@@ -331,7 +332,9 @@ async function getProductsDataFromSubcategory(
           );
         }
       } else {
-        console.log("url " + subcategoryWithFilters + " es pagina en blanco");
+        console.log(
+          "Aviso:  " + subcategoryWithFilters + " es pagina en blanco"
+        );
       }
     }
   }
@@ -339,7 +342,7 @@ async function getProductsDataFromSubcategory(
 
 async function getAllProductsData(page, categoriesCollection) {
   //29
-  for (let i = 29; i < categoriesCollection.length; i++) {
+  for (let i = 0; i < categoriesCollection.length; i++) {
     for (
       let j = categoriesCollection[i].subcategories.length - 1;
       j < categoriesCollection[i].subcategories.length;
@@ -419,7 +422,7 @@ async function App() {
     console.log("Error al recuperar datos de los productos " + e);
   }
 
-  console.log("-------- Se termina ejecucion scraping Newark -------- ");
+  console.log("******** Se termina ejecucion scraping Newark ********");
   await browser.close();
 }
 
