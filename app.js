@@ -167,39 +167,6 @@ async function getTableHeadElements(page) {
   }
 }
 
-async function getProductDataFromTable(page, subcategory) {
-  //se inicializa nextPage no siendo pagina final
-  let nextPage = { isLast: false };
-
-  const productDataFromTable = [];
-
-  try {
-    while (!nextPage.isLast) {
-      nextPage = await getNextPage(page);
-
-      if (nextPage) {
-        const tableHeadElements = await getTableHeadElements(page);
-        const tablePageData = await getTablePageData(page, tableHeadElements);
-        console.log(tablePageData);
-        if (!nextPage.isLast) {
-          await page.goto(nextPage.href);
-        }
-        productDataFromTable.push(...tablePageData);
-      }
-    }
-    //console.log(productDataFromTable);
-    console.log(
-      "-------- Se termina de recorrer productos en tabla de subcategoria " +
-        subcategory +
-        " -------- "
-    );
-    //se simula retorno de datos
-    return true;
-  } catch (e) {
-    throw new Error("Error en getProductDataFromTable " + e.message);
-  }
-}
-
 async function getSubcategories(page) {
   try {
     return await page.evaluate(() => {
@@ -236,7 +203,7 @@ async function checkHasMoreSubcategories(page) {
       return false;
     });
   } catch (e) {
-    console.error("Error en checkHasMoreSubcategories: " + e);
+    console.error("Error en checkHasMoreSubcategories: " + e.message);
   }
   return false;
 }
@@ -255,7 +222,7 @@ async function checkHasProductTable(page) {
       return false;
     });
   } catch (e) {
-    console.error("Error en checkHasProductTable: " + e);
+    console.error("Error en checkHasProductTable: " + e.message);
   }
   return false;
 }
@@ -272,7 +239,7 @@ async function checkIsProductPage(page) {
       return false;
     });
   } catch (e) {
-    console.error("Error en checkIsProductPage: " + e);
+    console.error("Error en checkIsProductPage: " + e.message);
   }
   return false;
 }
@@ -290,21 +257,56 @@ async function applyInStockFilter(subcategory) {
   }
 }
 
+async function getProductDataFromTable(page, subcategory) {
+  //se inicializa nextPage no siendo pagina final
+  let nextPage = { isLast: false };
+
+  const productDataFromTable = [];
+
+  try {
+    while (!nextPage.isLast) {
+      nextPage = await getNextPage(page);
+
+      if (nextPage) {
+        const tableHeadElements = await getTableHeadElements(page);
+        const tablePageData = await getTablePageData(page, tableHeadElements);
+        //console.log(tablePageData);
+        if (!nextPage.isLast) {
+          await page.goto(nextPage.href);
+        }
+        productDataFromTable.push(...tablePageData);
+      }
+    }
+    //console.log(productDataFromTable);
+    console.log(
+      "-------- Se termina de recorrer productos en tabla de subcategoria " +
+        subcategory +
+        " -------- "
+    );
+    //se simula retorno de datos
+    return true;
+  } catch (e) {
+    throw new Error("Error en getProductDataFromTable " + e.message);
+  }
+}
+
 async function getProductsDataFromSubcategory(
   page,
-  subcategory,
+  subcategoryParam,
   isFiltersApplied
 ) {
+  let subcategory = subcategoryParam;
   await page.goto(subcategory);
 
   if (await checkIsProductPage(page)) {
     console.log("Aviso:" + subcategory + " es pagina de producto.");
   } else {
-    let subcategoryWithFilters = subcategory;
+    //aplicamos filtros a subcategoria si aun no se han aplicado
     if (!isFiltersApplied) {
       try {
-        subcategoryWithFilters = await applyInStockFilter(subcategory);
+        subcategory = await applyInStockFilter(subcategory);
         isFiltersApplied = true;
+        await page.goto(subcategory);
       } catch (e) {
         console.error(
           "Error al aplicar filtros a subcategoria: " + subcategory
@@ -313,34 +315,40 @@ async function getProductsDataFromSubcategory(
         console.error("Se sigue proceso sin aplicar filtros");
       }
     }
-    await page.goto(subcategoryWithFilters);
 
     if (await checkHasProductTable(page)) {
       try {
-        await getProductDataFromTable(page, subcategoryWithFilters);
+        await getProductDataFromTable(page, subcategory);
       } catch (e) {
         console.error(
-          "Error al recuperar los datos de subcategoria " +
-            subcategoryWithFilters
+          "Error en getProductsDataFromSubcategory al recuperar los datos de subcategoria " +
+            subcategory
         );
         console.error("Mensaje de error: " + e.message);
         console.error("Se sigue proceso con siguiente subcategoria");
       }
     } else {
       if (await checkHasMoreSubcategories(page)) {
-        const moreSubcategories = await getSubcategories(page);
-        for (const newSubcategory of moreSubcategories) {
-          await new Promise((r) => setTimeout(r, 3000));
-          await getProductsDataFromSubcategory(
-            page,
-            newSubcategory,
-            isFiltersApplied
+        try {
+          const moreSubcategories = await getSubcategories(page);
+          for (const newSubcategory of moreSubcategories) {
+            await new Promise((r) => setTimeout(r, 3000));
+            await getProductsDataFromSubcategory(
+              page,
+              newSubcategory,
+              isFiltersApplied
+            );
+          }
+        } catch (e) {
+          console.error(
+            "Error en getProductsDataFromSubcategory al recuperar otras subcategorias de " +
+              subcategory
           );
+          console.error("Mensaje de error: " + e.message);
+          console.error("Se sigue proceso con siguiente subcategoria");
         }
       } else {
-        console.log(
-          "Aviso:  " + subcategoryWithFilters + " es pagina en blanco"
-        );
+        console.log("Aviso:  " + subcategory + " es pagina en blanco");
       }
     }
   }
