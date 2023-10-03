@@ -120,10 +120,25 @@ async function getTablePageData(page, tableHeadElements) {
               const priceForElement =
                 tableRowData[j].querySelector(".priceFor");
 
-              productObj.priceFor = priceForElement.textContent.trim();
+              productObj.priceFor = priceForElement.textContent
+                .replace(/\s+/g, " ")
+                .trim();
               break;
 
             case 6:
+              const priceElement = tableRowData[j].querySelector(".price");
+              const pricesCollection = priceElement.querySelectorAll(".priceBreak");
+              productObj.prices = [];
+
+              for (const priceSpan of pricesCollection) {
+                const quantity = priceSpan.querySelector(".qty");
+                const quantityPrice = priceSpan.querySelector(".qty_price_range");
+
+                productObj.prices.push({
+                  quantity: quantity.textContent.trim(),
+                  quantityPrice: quantityPrice.textContent.trim(),
+                });
+              }
               break;
 
             case 7:
@@ -270,7 +285,7 @@ async function getProductDataFromTable(page, subcategory) {
       if (nextPage) {
         const tableHeadElements = await getTableHeadElements(page);
         const tablePageData = await getTablePageData(page, tableHeadElements);
-        //console.log(tablePageData);
+        console.log(tablePageData);
         if (!nextPage.isLast) {
           await page.goto(nextPage.href);
         }
