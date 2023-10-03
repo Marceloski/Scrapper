@@ -127,12 +127,14 @@ async function getTablePageData(page, tableHeadElements) {
 
             case 6:
               const priceElement = tableRowData[j].querySelector(".price");
-              const pricesCollection = priceElement.querySelectorAll(".priceBreak");
+              const pricesCollection =
+                priceElement.querySelectorAll(".priceBreak");
               productObj.prices = [];
 
               for (const priceSpan of pricesCollection) {
                 const quantity = priceSpan.querySelector(".qty");
-                const quantityPrice = priceSpan.querySelector(".qty_price_range");
+                const quantityPrice =
+                  priceSpan.querySelector(".qty_price_range");
 
                 productObj.prices.push({
                   quantity: quantity.textContent.trim(),
@@ -142,10 +144,14 @@ async function getTablePageData(page, tableHeadElements) {
               break;
 
             case 7:
+              //se salta celda de cantidad de producto
               break;
 
             default:
-              //agregar a descripcion del producto
+              //agregar a descripcion extra del producto
+              if (tableRowData[j].textContent.trim() === "-") break;
+              productObj[tableHeadElements[j - 1]] =
+                tableRowData[j].textContent.trim();
               break;
           }
         }
@@ -287,10 +293,12 @@ async function getProductDataFromTable(page, subcategory) {
         const tablePageData = await getTablePageData(page, tableHeadElements);
         console.log(tablePageData);
         if (!nextPage.isLast) {
+          await new Promise((r) => setTimeout(r, 1000));
           await page.goto(nextPage.href);
         }
         productDataFromTable.push(...tablePageData);
       }
+
     }
     //console.log(productDataFromTable);
     console.log(
@@ -443,6 +451,7 @@ async function App() {
     headless: false,
   });
   const page = await browser.newPage();
+  await page.setViewport({ width: 1920, height: 1080 });
   const categoriesCollection = await getAllCategories(page);
 
   try {
