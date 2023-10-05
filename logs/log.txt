@@ -1,0 +1,199 @@
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/audio-video/speaker-components?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/audio-video/speaker-components -------- 
+-------- Se termina de recorrer categoria Audio / Video -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/automation-process-control/thermostats?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/automation-process-control/thermostats -------- 
+-------- Se termina de recorrer categoria Automation & Process Control -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/batteries-chargers/wireless-inductive-chargers?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/batteries-chargers/wireless-inductive-chargers -------- 
+-------- Se termina de recorrer categoria Batteries & Chargers -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/cable-wire-cable-assemblies/twinaxial-cable?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/cable-wire-cable-assemblies/twinaxial-cable -------- 
+-------- Se termina de recorrer categoria Cable, Wire & Cable Assemblies -------- 
+Aviso:https://www.newark.com/c/chemicals-adhesives/tin-plating es pagina de producto.
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/chemicals-adhesives/tin-plating -------- 
+-------- Se termina de recorrer categoria Chemicals & Adhesives -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/circuit-protection/thermistors/inrush-current-limiting-icl-ntc-thermistors?range=inc-in-stock -------- 
+Aviso:https://www.newark.com/w/c/circuit-protection/thermistors/miscellaneous-thermistors?range=inc-in-stock es pagina de producto.
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/circuit-protection/thermistors/ptc-thermistors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/circuit-protection/thermistors/resettable-fuses/battery-strap-ptcs?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/circuit-protection/thermistors/resettable-fuses/radial-leaded-pptcs?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/circuit-protection/thermistors/resettable-fuses/surface-mount-pptcs?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/circuit-protection/thermistors/temperature-sensing-compensation-ntc-thermistors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/circuit-protection/thermistors/thermistor-kits?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/circuit-protection/thermistors -------- 
+-------- Se termina de recorrer categoria Circuit Protection -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/connectors/usb-connectors-adapters/sealed-usb-connectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/connectors/usb-connectors-adapters/stacked-usb-connectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/connectors/usb-connectors-adapters/usb-adapters?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/connectors/usb-connectors-adapters/usb-connectors?range=inc-in-stock --------
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/connectors/usb-connectors-adapters --------
+-------- Se termina de recorrer categoria Connectors --------
+Aviso:https://www.newark.com/w/c/cooling-thermal-management/thermal-interface-materials/thermal-films?range=inc-in-stock es pagina de producto.
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/cooling-thermal-management/thermal-interface-materials/thermal-grease?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/cooling-thermal-management/thermal-interface-materials/thermal-insulators?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/cooling-thermal-management/thermal-interface-materials/thermal-management-sample-kits?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/cooling-thermal-management/thermal-interface-materials/thermal-pads?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/cooling-thermal-management/thermal-interface-materials/thermally-conductive-materials?range=inc-in-stock --------
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/cooling-thermal-management/thermal-interface-materials --------
+-------- Se termina de recorrer categoria Cooling & Thermal Management --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/crystals-oscillators/resonators?range=inc-in-stock --------
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/crystals-oscillators/resonators --------
+-------- Se termina de recorrer categoria Crystals & Oscillators --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/development-boards-evaluation-tools/special-application-development-kits?range=inc-in-stock --------
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/development-boards-evaluation-tools/special-application-development-kits --------
+-------- Se termina de recorrer categoria Development Boards, Evaluation Tools --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/electrical/timeswitch?range=inc-in-stock --------
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/electrical/timeswitch --------
+-------- Se termina de recorrer categoria Electrical --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/embedded-computers-education-maker-boards/other-embedded-computers/embedded-daughter-boards-modules-other-embedded-computers?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/embedded-computers-education-maker-boards/other-embedded-computers/embedded-development-kit-accessories-other-embedded-computers?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/embedded-computers-education-maker-boards/other-embedded-computers/embedded-development-kits-other-embedded-computers?range=inc-in-stock --------
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/embedded-computers-education-maker-boards/other-embedded-computers/embedded-single-board-computers-sbc-other-embedded-computers?range=inc-in-stock --------
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/embedded-computers-education-maker-boards/other-embedded-computers -------- 
+-------- Se termina de recorrer categoria Embedded Computers, Education & Maker Boards -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/enclosures-racks-cabinets/more-enclosures-racks-cabinets?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/enclosures-racks-cabinets/more-enclosures-racks-cabinets -------- 
+-------- Se termina de recorrer categoria Enclosures, Racks & Cabinets -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/engineering-software/os-middleware?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/engineering-software/os-middleware -------- 
+-------- Se termina de recorrer categoria Engineering Software -------- 
+Error en checkHasProductTable: Waiting for selector `#paraSearch` failed: Waiting failed: 30000ms exceeded
+Error en checkHasMoreSubcategories: Waiting for selector `#paraSearch` failed: Waiting failed: 30000ms exceeded
+Aviso:  https://www.newark.com/w/c/fasteners-mechanical/springs?range=inc-in-stock es pagina en blanco
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/fasteners-mechanical/springs --------
+-------- Se termina de recorrer categoria Fasteners & Mechanical -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/led-lighting-components/lighting-connectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/led-lighting-components/lighting-connectors -------- 
+-------- Se termina de recorrer categoria LED Lighting Components -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/lighting-products/task-inspection-lighting?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/lighting-products/task-inspection-lighting -------- 
+-------- Se termina de recorrer categoria Lighting Products -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/office-computer-networking-products/telecom-equipment?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/office-computer-networking-products/telecom-equipment -------- 
+-------- Se termina de recorrer categoria Office, Computer & Networking Products -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/optoelectronics-displays/uv-ir-components/ir-emitters?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/optoelectronics-displays/uv-ir-components/ir-receivers?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/optoelectronics-displays/uv-ir-components/ir-transceivers?range=inc-in-stock -------- 
+Error en getProductsDataFromSubcategory al recuperar los datos de subcategoria https://www.newark.com/search?categoryId=800000169501&range=inc-in-stock
+Mensaje de error: Error en getProductDataFromTable Protocol error (Page.navigate): Cannot navigate to invalid URL
+Se sigue proceso con siguiente subcategoria
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/optoelectronics-displays/uv-ir-components --------
+-------- Se termina de recorrer categoria Optoelectronics & Displays -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/passive-components/rheostats?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/passive-components/rheostats -------- 
+-------- Se termina de recorrer categoria Passive Components -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/power-line-protection/surge-protectors/coaxial-surge-protectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/power-line-protection/surge-protectors/data-signal-line-protectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/power-line-protection/surge-protectors/ethernet-poe-surge-protectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/power-line-protection/surge-protectors/mains-surge-protectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/power-line-protection/surge-protectors -------- 
+-------- Se termina de recorrer categoria Power & Line Protection -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/other-raspberry-pi-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-add-on-cards-modules?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-cables-wires?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-cameras-lenses?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-enclosures-cases?range=inc-in-stock -------- 
+Aviso:https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-keyboard-mouse?range=inc-in-stock es pagina de producto.
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-power-supplies?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-screens-displays?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/raspberry-pi/raspberry-pi-peripherals-accessories/raspberry-pi-software-storage?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/raspberry-pi/raspberry-pi-peripherals-accessories -------- 
+-------- Se termina de recorrer categoria Raspberry Pi -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/security/video-surveillance?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/security/video-surveillance -------- 
+-------- Se termina de recorrer categoria Security -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/semiconductors-discretes/transistors/bipolar-transistors/bipolar-junction-transistor-arrays-bjt?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/semiconductors-discretes/transistors/bipolar-transistors/bipolar-rf-transistors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/semiconductors-discretes/transistors/bipolar-transistors/pre-biased-digital-bipolar-transistors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/semiconductors-discretes/transistors/bipolar-transistors/single-bipolar-junction-transistors-bjt?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/semiconductors-discretes/transistors/darlington-transistors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/semiconductors-discretes/transistors/unijunction-transistors-ujt?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/semiconductors-discretes/transistors -------- 
+-------- Se termina de recorrer categoria Semiconductors - Discretes -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/semiconductors-ics/video-processing?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/semiconductors-ics/video-processing -------- 
+-------- Se termina de recorrer categoria Semiconductors - ICs -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/sensors-transducers/transducers/more-transducers?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/sensors-transducers/transducers/power-transducers?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/sensors-transducers/transducers/sensing-transducers/electromagnetic-transducers?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/sensors-transducers/transducers/sensing-transducers/piezo-transducer-elements?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/sensors-transducers/transducers/sensing-transducers/piezo-transducers?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/sensors-transducers/transducers/transducer-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/sensors-transducers/transducers -------- 
+-------- Se termina de recorrer categoria Sensors & Transducers -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/single-board-computers-maker-education/peripherals-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/single-board-computers-maker-education/peripherals-accessories -------- 
+-------- Se termina de recorrer categoria Single Board Computers, Maker & Education -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/fire-safety?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/labels-stencils/blank-labels?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/labels-stencils/miscellaneous-labels?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/labels-stencils/pre-printed-labels?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/lockout-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/lockout-devices?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/lockout-kits?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/mats-floor-coverings?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/safety-signs?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/site-safety-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/static-control-site-safety-clean-room-products/site-safety/sorbents?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/static-control-site-safety-clean-room-products/site-safety -------- 
+-------- Se termina de recorrer categoria Static Control, Site Safety & Clean Room Products -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/dip-switches-sip-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/detector-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/foot-operated-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/joystick-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/key-keylock-operated-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/keyboard-pushbutton-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/keypads?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/microswitch-snap-action-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/miscellaneous-pushbutton-switches?range=inc-in-stock -------- 
+Aviso:https://www.newark.com/w/c/switches-relays/switches/multi-station-switches?range=inc-in-stock es pagina de producto.
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/navigation-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/programmable-display-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/pushbutton-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/reed-switches-magnetic-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/rocker-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/rotary-switches/rotary-coded-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/rotary-switches/rotary-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/rotary-switches/voltage-selector-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/slide-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-accessories-switch-assortments/switch-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-accessories-switch-assortments/switch-assortments?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/rotary-switch-wafers?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-actuators?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-assembly-hardware?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-bezels?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-bodies-enclosures?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-caps?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-component-removal-tools?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-connectors?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-contact-blocks?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-finger-guards?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-keys-interlock-keys?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-legend-plates?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-lenses?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-mechanisms?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-replacement-lamps?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-replacement-magnets?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-components/switch-sealing-boots?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/switch-development-kits?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/tactile-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/thumbwheel-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/toggle-switches?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/touch-buttons?range=inc-in-stock -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/switches-relays/switches/wireless-command-devices?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/switches-relays/switches -------- 
+-------- Se termina de recorrer categoria Switches & Relays -------- 
+Aviso:  https://www.newark.com/w/c/test-measurement/waveform-generators?range=inc-in-stock es pagina en blanco
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/test-measurement/waveform-generators -------- 
+-------- Se termina de recorrer categoria Test & Measurement -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/tools-production-supplies/work-benches-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/tools-production-supplies/work-benches-accessories -------- 
+-------- Se termina de recorrer categoria Tools & Production Supplies -------- 
+Aviso:  https://www.newark.com/w/c/transformers/wideband-rf-transformers?range=inc-in-stock es pagina en blanco
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/transformers/wideband-rf-transformers -------- 
+-------- Se termina de recorrer categoria Transformers -------- 
+-------- Se termina de recorrer productos en tabla de subcategoria https://www.newark.com/w/c/wireless-modules-adaptors/semiconductor-module-accessories?range=inc-in-stock -------- 
+-------- Se termina de recorrer subcategoria general https://www.newark.com/c/wireless-modules-adaptors/semiconductor-module-accessories -------- 
+-------- Se termina de recorrer categoria Wireless Modules & Adaptors -------- 
+******** Se termina ejecucion scraping Newark ********
