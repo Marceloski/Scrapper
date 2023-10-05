@@ -285,12 +285,15 @@ async function getProductDataFromTable(page, subcategory) {
   const productDataFromTable = [];
 
   try {
+    //itera sobre las paginas de una tabla
     while (!nextPage.isLast) {
       nextPage = await getNextPage(page);
 
       if (nextPage) {
         const tableHeadElements = await getTableHeadElements(page);
+        //obtiene los datos de productos de la tabla
         const tablePageData = await getTablePageData(page, tableHeadElements);
+        //sube los datos a firebase
         console.log(tablePageData);
         if (!nextPage.isLast) {
           await new Promise((r) => setTimeout(r, 1000));
