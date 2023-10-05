@@ -285,15 +285,15 @@ async function getProductDataFromTable(page, subcategory) {
   const productDataFromTable = [];
 
   try {
-    //itera sobre las paginas de una tabla
+//itera sobre las paginas de una tabla
     while (!nextPage.isLast) {
       nextPage = await getNextPage(page);
 
       if (nextPage) {
         const tableHeadElements = await getTableHeadElements(page);
-        //obtiene los datos de productos de la tabla
+//obtiene los datos de productos de la tabla
         const tablePageData = await getTablePageData(page, tableHeadElements);
-        //sube los datos a firebase
+//sube los datos a firebase
         console.log(tablePageData);
         if (!nextPage.isLast) {
           await new Promise((r) => setTimeout(r, 1000));
@@ -450,8 +450,8 @@ async function getAllCategories(page) {
 async function App() {
   const browser = await puppeteerExtra.launch({
     executablePath:
-      "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
-    headless: false,
+      "/usr/bin/brave-browser-stable",
+    headless: "new",
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 });
