@@ -1,8 +1,26 @@
 const puppeteer = require("puppeteer");
 const puppeteerExtra = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const fs = require("fs");
+const path = require("path");
+const logWriter = require("./logWriter.js");
 
 puppeteerExtra.use(StealthPlugin());
+
+const dateTime = new Date();
+const date = "-" + dateTime.toISOString().split("T")[0] + "-";
+const time = dateTime
+  .toTimeString()
+  .split(" ")[0]
+  .replace(/:/g, " -")
+  .replace(/\s+/g, "");
+const logName = "logScraperNewark" + date + time + ".txt";
+
+if (!fs.existsSync("logs")) {
+  fs.mkdirSync("logs");
+}
+
+const rutaCompletaLog = path.join("logs", logName);
 
 async function getNextPage(page) {
   try {
@@ -224,7 +242,10 @@ async function checkHasMoreSubcategories(page) {
       return false;
     });
   } catch (e) {
-    console.error("Error en checkHasMoreSubcategories: " + e.message);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError en checkHasMoreSubcategories: " + e.message
+    );
   }
   return false;
 }
@@ -243,7 +264,10 @@ async function checkHasProductTable(page) {
       return false;
     });
   } catch (e) {
-    console.error("Error en checkHasProductTable: " + e.message);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError en checkHasProductTable: " + e.message
+    );
   }
   return false;
 }
@@ -260,7 +284,10 @@ async function checkIsProductPage(page) {
       return false;
     });
   } catch (e) {
-    console.error("Error en checkIsProductPage: " + e.message);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError en checkIsProductPage: " + e.message
+    );
   }
   return false;
 }
@@ -293,19 +320,18 @@ async function getProductDataFromTable(page, subcategory) {
         const tableHeadElements = await getTableHeadElements(page);
 //obtiene los datos de productos de la tabla
         const tablePageData = await getTablePageData(page, tableHeadElements);
-//sube los datos a firebase
-        console.log(tablePageData);
+        //sube los datos a firebase
+        //console.log(tablePageData);
         if (!nextPage.isLast) {
           await new Promise((r) => setTimeout(r, 1000));
           await page.goto(nextPage.href);
         }
         productDataFromTable.push(...tablePageData);
       }
-
     }
-    //console.log(productDataFromTable);
-    console.log(
-      "-------- Se termina de recorrer productos en tabla de subcategoria " +
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\n-------- Se termina de recorrer productos en tabla de subcategoria " +
         subcategory +
         " -------- "
     );
@@ -325,7 +351,10 @@ async function getProductsDataFromSubcategory(
   await page.goto(subcategory);
 
   if (await checkIsProductPage(page)) {
-    console.log("Aviso:" + subcategory + " es pagina de producto.");
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nAviso:" + subcategory + " es pagina de producto."
+    );
   } else {
     //aplicamos filtros a subcategoria si aun no se han aplicado
     if (!isFiltersApplied) {
@@ -334,11 +363,15 @@ async function getProductsDataFromSubcategory(
         isFiltersApplied = true;
         await page.goto(subcategory);
       } catch (e) {
-        console.error(
-          "Error al aplicar filtros a subcategoria: " + subcategory
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nError al aplicar filtros a subcategoria: " + subcategory
         );
-        console.error("Mensaje de error: " + e);
-        console.error("Se sigue proceso sin aplicar filtros");
+        logWriter.writeLogLine(rutaCompletaLog, "\nMensaje de error: " + e);
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nSe sigue proceso sin aplicar filtros"
+        );
       }
     }
 
@@ -346,12 +379,19 @@ async function getProductsDataFromSubcategory(
       try {
         await getProductDataFromTable(page, subcategory);
       } catch (e) {
-        console.error(
-          "Error en getProductsDataFromSubcategory al recuperar los datos de subcategoria " +
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nError en getProductsDataFromSubcategory al recuperar los datos de subcategoria " +
             subcategory
         );
-        console.error("Mensaje de error: " + e.message);
-        console.error("Se sigue proceso con siguiente subcategoria");
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nMensaje de error: " + e.message
+        );
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nSe sigue proceso con siguiente subcategoria"
+        );
       }
     } else {
       if (await checkHasMoreSubcategories(page)) {
@@ -366,15 +406,25 @@ async function getProductsDataFromSubcategory(
             );
           }
         } catch (e) {
-          console.error(
-            "Error en getProductsDataFromSubcategory al recuperar otras subcategorias de " +
+          logWriter.writeLogLine(
+            rutaCompletaLog,
+            "\nError en getProductsDataFromSubcategory al recuperar otras subcategorias de " +
               subcategory
           );
-          console.error("Mensaje de error: " + e.message);
-          console.error("Se sigue proceso con siguiente subcategoria");
+          logWriter.writeLogLine(
+            rutaCompletaLog,
+            "\nMensaje de error: " + e.message
+          );
+          logWriter.writeLogLine(
+            rutaCompletaLog,
+            "\nSe sigue proceso con siguiente subcategoria"
+          );
         }
       } else {
-        console.log("Aviso:  " + subcategory + " es pagina en blanco");
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nAviso:  " + subcategory + " es pagina en blanco"
+        );
       }
     }
   }
@@ -382,7 +432,7 @@ async function getProductsDataFromSubcategory(
 
 async function getAllProductsData(page, categoriesCollection) {
   //29
-  for (let i = 0; i < categoriesCollection.length; i++) {
+  for (let i = 1; i < categoriesCollection.length; i++) {
     for (
       let j = categoriesCollection[i].subcategories.length - 1;
       j < categoriesCollection[i].subcategories.length;
@@ -395,8 +445,9 @@ async function getAllProductsData(page, categoriesCollection) {
         isFiltersApplied
       );
 
-      console.log(
-        "-------- Se termina de recorrer subcategoria general " +
+      logWriter.writeLogLine(
+        rutaCompletaLog,
+        "\n-------- Se termina de recorrer subcategoria general " +
           categoriesCollection[i].subcategories[j] +
           " -------- "
       );
@@ -404,8 +455,9 @@ async function getAllProductsData(page, categoriesCollection) {
       //espera para cambiar entre subcategorias
       await new Promise((r) => setTimeout(r, 3000));
     }
-    console.log(
-      "-------- Se termina de recorrer categoria " +
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\n-------- Se termina de recorrer categoria " +
         categoriesCollection[i].category +
         " -------- "
     );
@@ -440,7 +492,7 @@ async function getAllCategories(page) {
         });
       });
     } else {
-      console.log("No existe mainContainer");
+      logWriter.writeLogLine(rutaCompletaLog, "\nNo existe mainContainer");
     }
     return categoriesCollection;
   });
@@ -448,6 +500,10 @@ async function getAllCategories(page) {
 }
 
 async function App() {
+  logWriter.createLog(
+    rutaCompletaLog,
+    "******** Se comienza ejecucion scraping Newark ********"
+  );
   const browser = await puppeteerExtra.launch({
     executablePath:
       "/usr/bin/brave-browser-stable",
@@ -460,10 +516,15 @@ async function App() {
   try {
     await getAllProductsData(page, categoriesCollection);
   } catch (e) {
-    console.error("Error al recuperar datos de los productos " + e);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError al recuperar datos de los productos" + e.message
+    );
   }
-
-  console.log("******** Se termina ejecucion scraping Newark ********");
+  logWriter.writeLogLine(
+    rutaCompletaLog,
+    "\n******** Se termina ejecucion scraping Newark ********"
+  );
   await browser.close();
 }
 
