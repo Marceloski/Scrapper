@@ -6,8 +6,8 @@ import {
   setLogName,
   createLogDir,
   setLogPath,
-} from "../src/logWriter.js";
-import { db } from "../src/firebase.js";
+} from "../logWriter.js";
+import { db } from "../firebase.js";
 
 puppeteerExtra.use(StealthPlugin());
 
