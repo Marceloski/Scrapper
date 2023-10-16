@@ -15,7 +15,7 @@ puppeteerExtra.use(StealthPlugin());
 createLogDir();
 const logPath = setLogPath(setLogName("newark"));
 
-async function createCategoryCollection(categoryParam) {
+async function createCategoryCollectionInFirebase(categoryParam) {
   let category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
   // Specify the custom IDs for the collection and document
   const collectionId = "test-products-categories";
@@ -452,7 +452,7 @@ async function getProductsDataFromSubcategory(
 async function getAllProductsData(page, categoriesCollection) {
   //29
   for (let i = 0; i < categoriesCollection.length; i++) {
-    await createCategoryCollection(categoriesCollection[i].category);
+    await createCategoryCollectionInFirebase(categoriesCollection[i].category);
     for (
       let j = categoriesCollection[i].subcategories.length - 1;
       j < categoriesCollection[i].subcategories.length;
