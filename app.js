@@ -1,28 +1,48 @@
 const puppeteer = require("puppeteer");
 const puppeteerExtra = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const fs = require("fs");
+const path = require("path");
+const logWriter = require("./logWriter.js");
 
 puppeteerExtra.use(StealthPlugin());
+
+const dateTime = new Date();
+const date = "-" + dateTime.toISOString().split("T")[0] + "-";
+const time = dateTime
+  .toTimeString()
+  .split(" ")[0]
+  .replace(/:/g, " -")
+  .replace(/\s+/g, "");
+const logName = "logScraperNewark" + date + time + ".txt";
+
+if (!fs.existsSync("logs")) {
+  fs.mkdirSync("logs");
+}
+
+const rutaCompletaLog = path.join("logs", logName);
 
 async function getNextPage(page) {
   try {
     await page.waitForSelector("#paraSearch");
     await page.waitForSelector(".paginLinks");
     return await page.evaluate(() => {
-      const mainContainer = document.querySelector("#paraSearch");
-      const paginLinks = mainContainer.querySelector(".paginLinks");
-      const paginNextArrow = paginLinks.querySelector(".paginNextArrow");
+      try {
+        const mainContainer = document.querySelector("#paraSearch");
+        const paginLinks = mainContainer.querySelector(".paginLinks");
+        const paginNextArrow = paginLinks.querySelector(".paginNextArrow");
 
-      if (paginNextArrow) {
-        const a_element = paginNextArrow.querySelector("a");
-        return { isLast: false, href: a_element.getAttribute("href") };
-      } else return { isLast: true, href: "" };
+        if (paginNextArrow) {
+          const a_element = paginNextArrow.querySelector("a");
+          return { isLast: false, href: a_element.getAttribute("href") };
+        } else return { isLast: true, href: "" };
+      } catch (e) {
+        throw new Error(e.message);
+      }
     });
   } catch (e) {
-    console.log(e);
-    //console.log("pagina del error: " + previousPage);
+    throw new Error("Error en getNextPage " + e.message);
   }
-  return null;
 }
 
 async function getTablePageData(page, tableHeadElements) {
@@ -118,17 +138,38 @@ async function getTablePageData(page, tableHeadElements) {
               const priceForElement =
                 tableRowData[j].querySelector(".priceFor");
 
-              productObj.priceFor = priceForElement.textContent.trim();
+              productObj.priceFor = priceForElement.textContent
+                .replace(/\s+/g, " ")
+                .trim();
               break;
 
             case 6:
+              const priceElement = tableRowData[j].querySelector(".price");
+              const pricesCollection =
+                priceElement.querySelectorAll(".priceBreak");
+              productObj.prices = [];
+
+              for (const priceSpan of pricesCollection) {
+                const quantity = priceSpan.querySelector(".qty");
+                const quantityPrice =
+                  priceSpan.querySelector(".qty_price_range");
+
+                productObj.prices.push({
+                  quantity: quantity.textContent.trim(),
+                  quantityPrice: quantityPrice.textContent.trim(),
+                });
+              }
               break;
 
             case 7:
+              //se salta celda de cantidad de producto
               break;
 
             default:
-              //agregar a descripcion del producto
+              //agregar a descripcion extra del producto
+              if (tableRowData[j].textContent.trim() === "-") break;
+              productObj[tableHeadElements[j - 1]] =
+                tableRowData[j].textContent.trim();
               break;
           }
         }
@@ -137,9 +178,8 @@ async function getTablePageData(page, tableHeadElements) {
       return tablePageData;
     }, tableHeadElements);
   } catch (e) {
-    console.log(e);
+    throw new Error("Error en getTablePageData " + e.message);
   }
-  return;
 }
 
 async function getTableHeadElements(page) {
@@ -162,44 +202,8 @@ async function getTableHeadElements(page) {
       return tableHeadElementsData;
     });
   } catch (e) {
-    console.log(e);
+    throw new Error("Error en getTableHeadElements " + e.message);
   }
-  return;
-}
-
-async function getProductDataFromTable(page, subcategory) {
-  //se inicializa nextPage no siendo pagina final
-  let nextPage = { isLast: false };
-
-  const productDataFromTable = [];
-
-  try {
-    while (!nextPage.isLast) {
-      nextPage = await getNextPage(page);
-
-      if (nextPage != null) {
-        const tableHeadElements = await getTableHeadElements(page);
-        const tablePageData = await getTablePageData(page, tableHeadElements);
-        //console.log(tablePageData);
-        if (!nextPage.isLast) {
-          await page.goto(nextPage.href);
-        }
-        productDataFromTable.push(...tablePageData);
-      } else {
-        throw new Error("nextPage es null");
-      }
-    }
-    //console.log(productDataFromTable);
-    console.log(
-      "-------- Se termina de recorrer productos en tabla de subcategoria " +
-        subcategory +
-        " -------- "
-    );
-    return true;
-  } catch (e) {
-    console.log("Error en getProductDataFromTable " + subcategory + " " + e);
-  }
-  return false;
 }
 
 async function getSubcategories(page) {
@@ -219,8 +223,7 @@ async function getSubcategories(page) {
       return subcategories;
     });
   } catch (e) {
-    console.log("Error en getSubcategories : " + e);
-    throw new Error(e);
+    throw new Error("Error en getSubcategories : " + e.message);
   }
 }
 
@@ -239,7 +242,10 @@ async function checkHasMoreSubcategories(page) {
       return false;
     });
   } catch (e) {
-    console.log("Error en checkHasMoreSubcategories: " + e);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError en checkHasMoreSubcategories: " + e.message
+    );
   }
   return false;
 }
@@ -258,7 +264,10 @@ async function checkHasProductTable(page) {
       return false;
     });
   } catch (e) {
-    console.log("Error en checkHasProductTable: " + e);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError en checkHasProductTable: " + e.message
+    );
   }
   return false;
 }
@@ -275,8 +284,12 @@ async function checkIsProductPage(page) {
       return false;
     });
   } catch (e) {
-    console.log("Error en checkIsProductPage: " + e);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError en checkIsProductPage: " + e.message
+    );
   }
+  return false;
 }
 
 async function applyInStockFilter(subcategory) {
@@ -288,52 +301,129 @@ async function applyInStockFilter(subcategory) {
     });
     return newString;
   } catch (e) {
-    console.log("Error en applyInStockFilter");
-    throw new Error(e);
+    throw new Error("Error en applyInStockFilter" + e.message);
+  }
+}
+
+async function getProductDataFromTable(page, subcategory) {
+  //se inicializa nextPage no siendo pagina final
+  let nextPage = { isLast: false };
+
+  const productDataFromTable = [];
+
+  try {
+    //itera sobre las paginas de una tabla
+    while (!nextPage.isLast) {
+      nextPage = await getNextPage(page);
+
+      if (nextPage) {
+        const tableHeadElements = await getTableHeadElements(page);
+        //obtiene los datos de productos de la tabla
+        const tablePageData = await getTablePageData(page, tableHeadElements);
+        //sube los datos a firebase
+        //console.log(tablePageData);
+        if (!nextPage.isLast) {
+          await new Promise((r) => setTimeout(r, 1000));
+          await page.goto(nextPage.href);
+        }
+        productDataFromTable.push(...tablePageData);
+      }
+    }
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\n-------- Se termina de recorrer productos en tabla de subcategoria " +
+        subcategory +
+        " -------- "
+    );
+    //se simula retorno de datos
+    return true;
+  } catch (e) {
+    throw new Error("Error en getProductDataFromTable " + e.message);
   }
 }
 
 async function getProductsDataFromSubcategory(
   page,
-  subcategory,
+  subcategoryParam,
   isFiltersApplied
 ) {
+  let subcategory = subcategoryParam;
   await page.goto(subcategory);
 
   if (await checkIsProductPage(page)) {
-    console.log(
-      "Aviso:" + subcategory + " es pagina de producto."
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nAviso:" + subcategory + " es pagina de producto."
     );
   } else {
-    let subcategoryWithFilters = subcategory;
-    try {
-      if (!isFiltersApplied) {
-        subcategoryWithFilters = await applyInStockFilter(subcategory);
+    //aplicamos filtros a subcategoria si aun no se han aplicado
+    if (!isFiltersApplied) {
+      try {
+        subcategory = await applyInStockFilter(subcategory);
         isFiltersApplied = true;
+        await page.goto(subcategory);
+      } catch (e) {
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nError al aplicar filtros a subcategoria: " + subcategory
+        );
+        logWriter.writeLogLine(rutaCompletaLog, "\nMensaje de error: " + e);
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nSe sigue proceso sin aplicar filtros"
+        );
       }
-    } catch (e) {
-      console.log("Error al aplicar filtros a subcategoria: " + subcategory);
-      console.log("Mensaje de error: " + e);
-      console.log("Se sigue proceso sin aplicar filtros");
     }
-    await page.goto(subcategoryWithFilters);
 
     if (await checkHasProductTable(page)) {
-      await getProductDataFromTable(page, subcategoryWithFilters);
+      try {
+        await getProductDataFromTable(page, subcategory);
+      } catch (e) {
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nError en getProductsDataFromSubcategory al recuperar los datos de subcategoria " +
+            subcategory
+        );
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nMensaje de error: " + e.message
+        );
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nSe sigue proceso con siguiente subcategoria"
+        );
+      }
     } else {
       if (await checkHasMoreSubcategories(page)) {
-        const moreSubcategories = await getSubcategories(page);
-        for (const newSubcategory of moreSubcategories) {
-          await new Promise((r) => setTimeout(r, 3000));
-          await getProductsDataFromSubcategory(
-            page,
-            newSubcategory,
-            isFiltersApplied
+        try {
+          const moreSubcategories = await getSubcategories(page);
+          for (const newSubcategory of moreSubcategories) {
+            await new Promise((r) => setTimeout(r, 3000));
+            await getProductsDataFromSubcategory(
+              page,
+              newSubcategory,
+              isFiltersApplied
+            );
+          }
+        } catch (e) {
+          logWriter.writeLogLine(
+            rutaCompletaLog,
+            "\nError en getProductsDataFromSubcategory al recuperar otras subcategorias de " +
+              subcategory
+          );
+          logWriter.writeLogLine(
+            rutaCompletaLog,
+            "\nMensaje de error: " + e.message
+          );
+          logWriter.writeLogLine(
+            rutaCompletaLog,
+            "\nSe sigue proceso con siguiente subcategoria"
           );
         }
       } else {
-        console.log(
-          "Aviso:  " + subcategoryWithFilters + " es pagina en blanco"
+        logWriter.writeLogLine(
+          rutaCompletaLog,
+          "\nAviso:  " + subcategory + " es pagina en blanco"
         );
       }
     }
@@ -342,7 +432,7 @@ async function getProductsDataFromSubcategory(
 
 async function getAllProductsData(page, categoriesCollection) {
   //29
-  for (let i = 0; i < categoriesCollection.length; i++) {
+  for (let i = 1; i < categoriesCollection.length; i++) {
     for (
       let j = categoriesCollection[i].subcategories.length - 1;
       j < categoriesCollection[i].subcategories.length;
@@ -355,8 +445,9 @@ async function getAllProductsData(page, categoriesCollection) {
         isFiltersApplied
       );
 
-      console.log(
-        "-------- Se termina de recorrer subcategoria general " +
+      logWriter.writeLogLine(
+        rutaCompletaLog,
+        "\n-------- Se termina de recorrer subcategoria general " +
           categoriesCollection[i].subcategories[j] +
           " -------- "
       );
@@ -364,8 +455,9 @@ async function getAllProductsData(page, categoriesCollection) {
       //espera para cambiar entre subcategorias
       await new Promise((r) => setTimeout(r, 3000));
     }
-    console.log(
-      "-------- Se termina de recorrer categoria " +
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\n-------- Se termina de recorrer categoria " +
         categoriesCollection[i].category +
         " -------- "
     );
@@ -400,7 +492,7 @@ async function getAllCategories(page) {
         });
       });
     } else {
-      console.log("No existe mainContainer");
+      logWriter.writeLogLine(rutaCompletaLog, "\nNo existe mainContainer");
     }
     return categoriesCollection;
   });
@@ -408,21 +500,31 @@ async function getAllCategories(page) {
 }
 
 async function App() {
+  logWriter.createLog(
+    rutaCompletaLog,
+    "******** Se comienza ejecucion scraping Newark ********"
+  );
   const browser = await puppeteerExtra.launch({
     executablePath:
       "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
     headless: false,
   });
   const page = await browser.newPage();
+  await page.setViewport({ width: 1920, height: 1080 });
   const categoriesCollection = await getAllCategories(page);
 
   try {
     await getAllProductsData(page, categoriesCollection);
   } catch (e) {
-    console.log("Error al recuperar datos de los productos " + e);
+    logWriter.writeLogLine(
+      rutaCompletaLog,
+      "\nError al recuperar datos de los productos" + e.message
+    );
   }
-
-  console.log("******** Se termina ejecucion scraping Newark ********");
+  logWriter.writeLogLine(
+    rutaCompletaLog,
+    "\n******** Se termina ejecucion scraping Newark ********"
+  );
   await browser.close();
 }
 

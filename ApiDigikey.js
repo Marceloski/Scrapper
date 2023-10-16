@@ -24,7 +24,13 @@ async function App(){
     console.log(authorizationCode)
     
        const apiUrl = 'https://sandbox-api.digikey.com/SupplyChain/v1/BondedQuantity/Products';
-    
+       const token = {
+        access_token :'',
+        refresh_token : '',
+        expires_in : '',
+        refresh_token_expires_in: '',
+        token_type: '',
+      };
       // Define los encabezados requeridos para la solicitud
       const headers = {
         code: '',
@@ -34,6 +40,7 @@ async function App(){
         grant_type: authorizationCode, 
       };
       
+     
       // Configura la solicitud GET
       const requestOptions = {
         method: 'GET',
