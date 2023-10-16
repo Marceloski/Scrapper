@@ -1,7 +1,7 @@
-const dotenv = require('dotenv');
-const { initializeApp, applicationDefault } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-const { getAuth } = require('firebase-admin/auth');
+import dotenv from 'dotenv';
+import { initializeApp, applicationDefault } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 // Cargar las variables de entorno
 dotenv.config();
@@ -12,7 +12,5 @@ initializeApp({
 });
 
 // Obtener instancias de Firestore y Auth
-const db = getFirestore();
-const auth = getAuth();
-
-module.exports = { db, auth };
+export const db = getFirestore();
+export const auth = getAuth();

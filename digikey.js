@@ -1,7 +1,8 @@
-const OAuth = require("oauth");
+
+import { OAuth2 } from "oauth";
 async function App() {
   // Configuración de OAuth
-  const oauth = new OAuth.OAuth2(
+  const oauth = new OAuth2(
     "YIvnS5AiL6eDcYnKsw8yAqU5qA1iHer8", // Reemplaza con el ID de cliente de tu aplicación
     "I9BUj3UsvOwvIXB6", // Reemplaza con el secreto de cliente de tu aplicación
     "https://api.digikey.com/v1/oauth2/authorize", // URL de autorización
@@ -18,7 +19,7 @@ async function App() {
 
   // Después de que el usuario regrese, intercambia el código de autorización por un token de acceso
   const authorizationCode = authorizationUrl; // Reemplaza con el código de autorización obtenido
-  console.log(authorizationCode);
+  console.log("codigo de de auth:  "+authorizationCode);
 
   const apiUrl =
     "https://sandbox-api.digikey.com/SupplyChain/v1/BondedQuantity/Products";
