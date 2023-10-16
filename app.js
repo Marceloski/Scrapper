@@ -1,9 +1,11 @@
-const puppeteer = require("puppeteer");
 const puppeteerExtra = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const fs = require("fs");
 const path = require("path");
 const logWriter = require("./logWriter.js");
+const firebase = require("./firebase.js");
+const db = firebase.db;
+const auth = firebase.auth;
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -21,6 +23,46 @@ if (!fs.existsSync("logs")) {
 }
 
 const rutaCompletaLog = path.join("logs", logName);
+
+async function createCategoryCollection(categoryParam) {
+  let category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
+  // Specify the custom IDs for the collection and document
+  const collectionId = "test-products-categories";
+  const documentId = category;
+  const subcollectionId = "products";
+
+  // Create a document with a custom ID in a collection
+  const collectionRef = db.collection(collectionId);
+  const documentRef = collectionRef.doc(documentId);
+
+  documentRef
+    .set({ initialized: true })
+    .then(async () => {
+      // Create a subcollection with a custom ID in the document
+      await documentRef.collection(subcollectionId).add({
+        initialized: true,
+      });
+    })
+    .then(() => {})
+    .catch((error) => {
+      console.error("Error creating document:", error);
+    });
+}
+
+async function uploadProductData(dataCollection, categoryParam) {
+  let category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
+  for (const data of dataCollection) {
+    await db
+      .collection("test-products-categories")
+      .doc(category)
+      .collection("products")
+      .add(data)
+      .then()
+      .catch((e) => {
+        throw new Error(e.message);
+      });
+  }
+}
 
 async function getNextPage(page) {
   try {
@@ -168,8 +210,10 @@ async function getTablePageData(page, tableHeadElements) {
             default:
               //agregar a descripcion extra del producto
               if (tableRowData[j].textContent.trim() === "-") break;
-              productObj[tableHeadElements[j - 1]] =
-                tableRowData[j].textContent.trim();
+              const objField = tableHeadElements[j - 1]
+                .replace(/[^\w\s]/gi, "")
+                .replace(/\s+/g, "");
+              productObj[objField] = tableRowData[j].textContent.trim();
               break;
           }
         }
@@ -305,7 +349,7 @@ async function applyInStockFilter(subcategory) {
   }
 }
 
-async function getProductDataFromTable(page, subcategory) {
+async function getProductDataFromTable(page, subcategory, category) {
   //se inicializa nextPage no siendo pagina final
   let nextPage = { isLast: false };
 
@@ -321,6 +365,13 @@ async function getProductDataFromTable(page, subcategory) {
         //obtiene los datos de productos de la tabla
         const tablePageData = await getTablePageData(page, tableHeadElements);
         //sube los datos a firebase
+        if (tablePageData.length != 0) {
+          await uploadProductData(tablePageData, category)
+            .then()
+            .catch((e) => {
+              throw new Error(e.message);
+            });
+        }
         //console.log(tablePageData);
         if (!nextPage.isLast) {
           await new Promise((r) => setTimeout(r, 1000));
@@ -344,6 +395,7 @@ async function getProductDataFromTable(page, subcategory) {
 
 async function getProductsDataFromSubcategory(
   page,
+  category,
   subcategoryParam,
   isFiltersApplied
 ) {
@@ -377,11 +429,11 @@ async function getProductsDataFromSubcategory(
 
     if (await checkHasProductTable(page)) {
       try {
-        await getProductDataFromTable(page, subcategory);
+        await getProductDataFromTable(page, subcategory, category);
       } catch (e) {
         logWriter.writeLogLine(
           rutaCompletaLog,
-          "\nError en getProductsDataFromSubcategory al recuperar los datos de subcategoria " +
+          "\nError en getProductsDataFromSubcategory al recuperar los datos de una tabla en " +
             subcategory
         );
         logWriter.writeLogLine(
@@ -432,7 +484,8 @@ async function getProductsDataFromSubcategory(
 
 async function getAllProductsData(page, categoriesCollection) {
   //29
-  for (let i = 1; i < categoriesCollection.length; i++) {
+  for (let i = 0; i < categoriesCollection.length; i++) {
+    await createCategoryCollection(categoriesCollection[i].category);
     for (
       let j = categoriesCollection[i].subcategories.length - 1;
       j < categoriesCollection[i].subcategories.length;
@@ -441,6 +494,7 @@ async function getAllProductsData(page, categoriesCollection) {
       var isFiltersApplied = false;
       await getProductsDataFromSubcategory(
         page,
+        categoriesCollection[i].category,
         categoriesCollection[i].subcategories[j],
         isFiltersApplied
       );
@@ -500,15 +554,15 @@ async function getAllCategories(page) {
 }
 
 async function App() {
-  logWriter.createLog(
-    rutaCompletaLog,
-    "******** Se comienza ejecucion scraping Newark ********"
-  );
   const browser = await puppeteerExtra.launch({
     executablePath:
       "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
     headless: false,
   });
+  logWriter.createLog(
+    rutaCompletaLog,
+    "******** Se comienza ejecucion scraping Newark ********"
+  );
   const page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 });
   const categoriesCollection = await getAllCategories(page);
@@ -518,7 +572,7 @@ async function App() {
   } catch (e) {
     logWriter.writeLogLine(
       rutaCompletaLog,
-      "\nError al recuperar datos de los productos" + e.message
+      "\nError al recuperar datos de los productos " + e.message
     );
   }
   logWriter.writeLogLine(
