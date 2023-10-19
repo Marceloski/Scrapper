@@ -6,8 +6,8 @@ import {
   setLogName,
   createLogDir,
   setLogPath,
-} from "../src/logWriter.js";
-import { db } from "../src/firebase.js";
+} from "../logWriter.js";
+import { db } from "../../firebase.js";
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -15,37 +15,54 @@ puppeteerExtra.use(StealthPlugin());
 createLogDir();
 const logPath = setLogPath(setLogName("newark"));
 
-async function createCategoryCollection(categoryParam) {
-  let category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
-  // Specify the custom IDs for the collection and document
-  const collectionId = "test-products-categories";
-  const documentId = category;
-  const subcollectionId = "products";
-
-  // Create a document with a custom ID in a collection
-  const collectionRef = db.collection(collectionId);
-  const documentRef = collectionRef.doc(documentId);
-
-  documentRef
-    .set({ initialized: true })
-    .then(async () => {
-      // Create a subcollection with a custom ID in the document
-      await documentRef.collection(subcollectionId).add({
-        initialized: true,
-      });
-    })
-    .then(() => {})
-    .catch((error) => {
-      console.error("Error creating document:", error);
-    });
-}
+const getProperCategory = (pageCategory) => {
+  const categoryMappings = {
+    EnclosuresRacksCabinets: "Bricolaje",
+    BatteriesChargers: "Energías",
+    AudioVideo: "Electrónica",
+    DevelopmentBoardsEvaluationTools: "Electrónica",
+    RaspberryPi: "Electrónica",
+    SemiconductorsDiscretes: "Electrónica",
+    SwitchesRelays: "Electrónica",
+    Connectors: "Electrónica",
+    OptoelectronicsDisplays: "Electrónica",
+    CrystalsOscillators: "Electrónica",
+    PassiveComponents: "Electrónica",
+    SensorsTransducers: "Sensores",
+    LEDLightingComponents: "Iluminación",
+    LightingProducts: "Iluminación",
+    AutomationProcessControl: "Automatización e IOT",
+    ChemicalsAdhesives: "Herramientas e insumos",
+    TestMeasurement: "Herramientas e insumos",
+    FastenersMechanical: "Herramientas e insumos",
+    ToolsProductionSupplies: "Herramientas e insumos",
+    WirelessModulesAdaptors: "RF e inalámbricos",
+    Electrical: "Electricidad",
+    Transformers: "Electricidad",
+    EmbeddedComputersEducationMakerBoards: "Computación",
+    SingleBoardComputersMakerEducation: "Computación",
+    EngineeringSoftware: "Computación",
+    OfficeComputerNetworkingProducts: "Computación",
+    Security: "Seguridad",
+    StaticControlSiteSafetyCleanRoomProducts: "Seguridad",
+    CircuitProtection: "Seguridad",
+    PowerLineProtection: "Seguridad",
+    CableWireCableAssemblies: "Cableado",
+    CoolingThermalManagement: "Administración térmica",
+    IndustrialSBCsEmbeddedSystems: "Computación",
+    SemiconductorsICs: "Electrónica",
+  };
+  return categoryMappings[pageCategory] || null;
+};
 
 async function uploadProductData(dataCollection, categoryParam) {
-  let category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
+  const category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
+  const firebaseCategory = getProperCategory(category);
+
   for (const data of dataCollection) {
     await db
-      .collection("test-products-categories")
-      .doc(category)
+      .collection("categories")
+      .doc(firebaseCategory)
       .collection("products")
       .add(data)
       .then()
@@ -452,7 +469,6 @@ async function getProductsDataFromSubcategory(
 async function getAllProductsData(page, categoriesCollection) {
   //29
   for (let i = 0; i < categoriesCollection.length; i++) {
-    await createCategoryCollection(categoriesCollection[i].category);
     for (
       let j = categoriesCollection[i].subcategories.length - 1;
       j < categoriesCollection[i].subcategories.length;
