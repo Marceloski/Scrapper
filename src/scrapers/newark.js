@@ -59,16 +59,18 @@ async function uploadProductData(dataCollection, categoryParam) {
   const category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
   const firebaseCategory = getProperCategory(category);
 
-  for (const data of dataCollection) {
-    await db
-      .collection("categories")
-      .doc(firebaseCategory)
-      .collection("products")
-      .add(data)
-      .then()
-      .catch((e) => {
-        throw new Error(e.message);
-      });
+  if (firebaseCategory != null) {
+    for (const data of dataCollection) {
+      await db
+        .collection("categories")
+        .doc(firebaseCategory)
+        .collection("products")
+        .add(data)
+        .then()
+        .catch((e) => {
+          throw new Error(e.message);
+        });
+    }
   }
 }
 
