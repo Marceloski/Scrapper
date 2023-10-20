@@ -55,6 +55,8 @@ const getProperCategory = (pageCategory) => {
   return categoryMappings[pageCategory] || null;
 };
 
+const productExists = () => {};
+
 async function uploadProductData(dataCollection, categoryParam) {
   const category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
   const firebaseCategory = getProperCategory(category);
@@ -123,7 +125,20 @@ async function getTablePageData(page, tableHeadElements) {
       for (let i = 0; i < tableRows.length; i++) {
         //obteniendo las casillas de una fila
         const tableRowData = tableRows[i].children;
-        const productObj = {};
+        const productObj = {
+          manufacturer: "",
+          manufacturerPartNo: "",
+          imgSrc: "",
+          description: "",
+          suppliers: [
+            {
+              supplier: "newark",
+              prices: [],
+              stock: [],
+              productUrl: "",
+            },
+          ],
+        };
 
         //se empieza a iterar desde la segunda casilla, ya que la primera esta vacia (recorriendo datos de productos en tabla)
         for (let j = 1; j < tableRowData.length; j++) {
@@ -139,7 +154,8 @@ async function getTablePageData(page, tableHeadElements) {
             case 2:
               const skuElement = tableRowData[j].querySelector(".sku");
 
-              productObj.newarkPartNo = skuElement.textContent.trim();
+              productObj.suppliers[0].newarkPartNo =
+                skuElement.textContent.trim();
               break;
             //description y manufacturer
             case 3:
@@ -157,13 +173,15 @@ async function getTablePageData(page, tableHeadElements) {
                 tableRowData[j].querySelectorAll(".enhanceInStkTxt");
 
               if (stockElements.length > 0) {
-                productObj.stock = {};
                 stockElements.forEach((stockInCountry) => {
                   const singleSpanElement =
                     stockInCountry.querySelector(".inStockBold");
 
                   if (singleSpanElement) {
-                    productObj.stock.us = singleSpanElement.textContent.trim();
+                    productObj.suppliers[0].stock.push({
+                      country: "us",
+                      stock: singleSpanElement.textContent.trim(),
+                    });
                   } else {
                     const elementText = stockInCountry.textContent.replace(
                       /\s+/g,
@@ -174,14 +192,20 @@ async function getTablePageData(page, tableHeadElements) {
                       .textContent.trim();
 
                     if (elementText.indexOf("USwarehouse") !== -1) {
-                      productObj.stock.us = stock;
+                      productObj.suppliers[0].stock.push({
+                        country: "us",
+                        stock: stock,
+                      });
                     } else if (elementText.indexOf("UKStock") !== -1) {
-                      productObj.stock.uk = stock;
+                      productObj.suppliers[0].stock.push({
+                        country: "uk",
+                        stock: stock,
+                      });
                     }
                   }
                 });
               } else {
-                productObj.stock = "sin stock";
+                productObj.suppliers[0].stock.length = 0;
               }
 
               break;
@@ -199,16 +223,15 @@ async function getTablePageData(page, tableHeadElements) {
               const priceElement = tableRowData[j].querySelector(".price");
               const pricesCollection =
                 priceElement.querySelectorAll(".priceBreak");
-              productObj.prices = [];
 
               for (const priceSpan of pricesCollection) {
                 const quantity = priceSpan.querySelector(".qty");
                 const quantityPrice =
                   priceSpan.querySelector(".qty_price_range");
 
-                productObj.prices.push({
+                productObj.suppliers[0].prices.push({
                   quantity: quantity.textContent.trim(),
-                  quantityPrice: quantityPrice.textContent.trim(),
+                  price: quantityPrice.textContent.trim(),
                 });
               }
               break;
@@ -223,7 +246,8 @@ async function getTablePageData(page, tableHeadElements) {
               const objField = tableHeadElements[j - 1]
                 .replace(/[^\w\s]/gi, "")
                 .replace(/\s+/g, "");
-              productObj[objField] = tableRowData[j].textContent.trim();
+              productObj.suppliers[0][objField] =
+                tableRowData[j].textContent.trim();
               break;
           }
         }
@@ -375,7 +399,7 @@ async function getProductDataFromTable(page, subcategory, category) {
         }
         //console.log(tablePageData);
         if (!nextPage.isLast) {
-          await new Promise((r) => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 3000));
           await page.goto(nextPage.href);
         }
         productDataFromTable.push(...tablePageData);
@@ -540,9 +564,14 @@ async function getAllCategories(page) {
 
 async function App() {
   const browser = await puppeteerExtra.launch({
+    ignoreDefaultArgs: ["--enable-automation"],
     executablePath:
       "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe",
     headless: false,
+    args: [
+      "--disable-blink-features=AutomationControlled",
+      "--disable-infobars",
+    ],
   });
   createLog(logPath, "******** Se comienza ejecucion scraping Newark ********");
   const page = await browser.newPage();
