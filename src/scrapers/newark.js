@@ -55,23 +55,64 @@ const getProperCategory = (pageCategory) => {
   return categoryMappings[pageCategory] || null;
 };
 
-const productExists = () => {};
-
 async function uploadProductData(dataCollection, categoryParam) {
   const category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
   const firebaseCategory = getProperCategory(category);
 
   if (firebaseCategory != null) {
+    const productsRef = db
+      .collection("categories")
+      .doc(firebaseCategory)
+      .collection("products");
+
     for (const data of dataCollection) {
-      await db
-        .collection("categories")
-        .doc(firebaseCategory)
-        .collection("products")
-        .add(data)
-        .then()
-        .catch((e) => {
-          throw new Error(e.message);
-        });
+      try {
+        // Comprobamos si es que existen productos con los datos del producto
+        const productsSnapshot = await productsRef
+          .where("manufacturer", "==", data.manufacturer)
+          .where("manufacturerPartNo", "==", data.manufacturerPartNo)
+          .get();
+
+        // Si no hay productos que calzen con los datos
+        if (productsSnapshot.empty) {
+          const newProductRef = await productsRef.add(data);
+          console.log(
+            `Nuevo producto añadido con ID: ${newProductRef.id} en categoria ${firebaseCategory}`
+          );
+        } else {
+          // Si se encuentran productos que calzen con los datos
+          productsSnapshot.docs.forEach(async (productSnapshot) => {
+            const productData = productSnapshot.data();
+
+            if (productData.suppliers) {
+              // Se comprueba si newark está como proveedor
+              const newarkIndex = productData.suppliers.findIndex(
+                (supplier) => supplier.supplier === "newark"
+              );
+
+              // Si existe newark como proveedor
+              if (newarkIndex !== -1) {
+                // Reemplazamos los datos para newark
+                productData.suppliers[newarkIndex] = data.suppliers[0];
+                // Si no existe newark como proveedor
+              } else {
+                // Añadimos a newark como proveedor
+                productData.suppliers.push(data.suppliers[0]);
+              }
+
+              // Actualizamos el dato del producto con el arreglo de proveedores actualizado
+              await productsRef.doc(productSnapshot.id).update({
+                suppliers: productData.suppliers,
+              });
+              console.log(
+                `Datos de proveedores actualizado para el producto: ${productSnapshot.id} en categoria: ${firebaseCategory}`
+              );
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error procesando los datos del producto:", error);
+      }
     }
   }
 }
@@ -107,13 +148,13 @@ async function getTablePageData(page, tableHeadElements) {
       await new Promise((resolve) => {
         const scrollInterval = setInterval(() => {
           window.scrollBy(0, 1500); // Ajusta la cantidad de desplazamiento según tus necesidades
-        }, 1000); // Intervalo entre desplazamientos en milisegundos
+        }, 2000); // Intervalo entre desplazamientos en milisegundos
 
         // Se detiene simulacion
         setTimeout(() => {
           clearInterval(scrollInterval);
           resolve();
-        }, 3000); // 3 segundos
+        }, 7000);
       });
       const mainContainer = document.getElementById("paraSearch");
       const tableElement = mainContainer.querySelector("table");
@@ -399,7 +440,7 @@ async function getProductDataFromTable(page, subcategory, category) {
         }
         //console.log(tablePageData);
         if (!nextPage.isLast) {
-          await new Promise((r) => setTimeout(r, 3000));
+          await new Promise((r) => setTimeout(r, 5000));
           await page.goto(nextPage.href);
         }
         productDataFromTable.push(...tablePageData);
@@ -428,7 +469,10 @@ async function getProductsDataFromSubcategory(
   await page.goto(subcategory);
 
   if (await checkIsProductPage(page)) {
-    writeLogLine(logPath, "\nAviso:" + subcategory + " es pagina de producto.");
+    writeLogLine(
+      logPath,
+      "\nAviso: " + subcategory + " es pagina de producto."
+    );
   } else {
     //aplicamos filtros a subcategoria si aun no se han aplicado
     if (!isFiltersApplied) {
@@ -463,7 +507,7 @@ async function getProductsDataFromSubcategory(
         try {
           const moreSubcategories = await getSubcategories(page);
           for (const newSubcategory of moreSubcategories) {
-            await new Promise((r) => setTimeout(r, 3000));
+            await new Promise((r) => setTimeout(r, 5000));
             await getProductsDataFromSubcategory(
               page,
               newSubcategory,
@@ -516,7 +560,7 @@ async function getAllProductsData(page, categoriesCollection) {
       );
 
       //espera para cambiar entre subcategorias
-      await new Promise((r) => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 5000));
     }
     writeLogLine(
       logPath,
