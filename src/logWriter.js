@@ -31,7 +31,7 @@ export function createLog(logName, message) {
 }
 
 export function writeLogLine(logName, message) {
-  fs.appendFile(logName, message, (err) => {
+  fs.appendFile(logName, "\n"+message, (err) => {
     if (err) {
       console.error("Error al escribir en el archivo de log:", err);
     }

@@ -76,8 +76,13 @@ async function uploadProductData(dataCollection, categoryParam) {
         // Si no hay productos que calzen con los datos
         if (productsSnapshot.empty) {
           const newProductRef = await productsRef.add(data);
-          console.log(
-            `Nuevo producto añadido con ID: ${newProductRef.id} en categoria ${firebaseCategory}`
+          writeLogLine(
+            logPath,
+            "-------- Nuevo producto añadido con ID : " +
+              newProductRef.id +
+              " en categoria " +
+              firebaseCategory +
+              " --------"
           );
         } else {
           // Si se encuentran productos que calzen con los datos
@@ -104,14 +109,24 @@ async function uploadProductData(dataCollection, categoryParam) {
               await productsRef.doc(productSnapshot.id).update({
                 suppliers: productData.suppliers,
               });
-              console.log(
-                `Datos de proveedores actualizado para el producto: ${productSnapshot.id} en categoria: ${firebaseCategory}`
+              writeLogLine(
+                logPath,
+                "-------- Datos de proveedores actualizado para el producto: " +
+                  productSnapshot.id +
+                  " en categoria " +
+                  firebaseCategory +
+                  " --------"
               );
             }
           });
         }
       } catch (error) {
-        console.error("Error procesando los datos del producto:", error);
+        writeLogLine(
+          logPath,
+          "******** Error procesando los datos del producto: " +
+            error.message +
+            " ********"
+        );
       }
     }
   }
@@ -128,8 +143,8 @@ async function getNextPage(page) {
         const paginNextArrow = paginLinks.querySelector(".paginNextArrow");
 
         if (paginNextArrow) {
-          const a_element = paginNextArrow.querySelector("a");
-          return { isLast: false, href: a_element.getAttribute("href") };
+          const aElement = paginNextArrow.querySelector("a");
+          return { isLast: false, href: aElement.getAttribute("href") };
         } else return { isLast: true, href: "" };
       } catch (e) {
         throw new Error(e.message);
@@ -141,7 +156,14 @@ async function getNextPage(page) {
 }
 
 async function getTablePageData(page, tableHeadElements) {
+  const currentURL = await page.url();
   try {
+    writeLogLine(
+      logPath,
+      "-------- Obteniedo los datos de productos en: " +
+        currentURL +
+        " -------- "
+    );
     await page.waitForSelector("#paraSearch");
     return await page.evaluate(async (tableHeadElements) => {
       // Simula desplazamiento de página hacia abajo
@@ -302,7 +324,14 @@ async function getTablePageData(page, tableHeadElements) {
 }
 
 async function getTableHeadElements(page) {
+  const currentURL = await page.url();
   try {
+    writeLogLine(
+      logPath,
+      "-------- Obteniedo los encabzados de la tabla de productos en: " +
+        currentURL +
+        " -------- "
+    );
     await page.waitForSelector("#paraSearch");
     return await page.evaluate(() => {
       const mainContainer = document.getElementById("paraSearch");
@@ -326,19 +355,26 @@ async function getTableHeadElements(page) {
 }
 
 async function getSubcategories(page) {
+  const currentURL = await page.url();
   try {
+    writeLogLine(
+      logPath,
+      "-------- Obteniendo más subcategorías de: " + currentURL
+    );
     return await page.evaluate(() => {
-      debugger;
       const subcategories = [];
       const mainContainer = document.getElementById("paraSearch");
       const nav = mainContainer.querySelector("nav");
       const items = nav.querySelectorAll("li");
 
-      items.forEach((item) => {
-        const a_element = item.querySelector("a");
-        subcategories.push(a_element.getAttribute("href"));
-      });
+      for (const item of items) {
+        const divElement = item.querySelector(".productName");
+        const aElement = divElement.querySelector("a");
+        subcategories.push(aElement.getAttribute("href"));
+      }
 
+      console.log(subcategories);
+      debugger;
       return subcategories;
     });
   } catch (e) {
@@ -347,7 +383,14 @@ async function getSubcategories(page) {
 }
 
 async function checkHasMoreSubcategories(page) {
+  const currentURL = await page.url();
   try {
+    writeLogLine(
+      logPath,
+      "-------- Comprobando si " +
+        currentURL +
+        " tiene más subcategorias -------- "
+    );
     await page.waitForSelector("#paraSearch");
     return await page.evaluate(() => {
       const mainContainer = document.getElementById("paraSearch");
@@ -361,13 +404,23 @@ async function checkHasMoreSubcategories(page) {
       return false;
     });
   } catch (e) {
-    writeLogLine(logPath, "\nError en checkHasMoreSubcategories: " + e.message);
+    writeLogLine(
+      logPath,
+      "######## Error en checkHasMoreSubcategories: " + e.message
+    );
   }
   return false;
 }
 
 async function checkHasProductTable(page) {
+  const currentURL = await page.url();
   try {
+    writeLogLine(
+      logPath,
+      "-------- Comprobando si " +
+        currentURL +
+        " tiene tabla de producto -------- "
+    );
     await page.waitForSelector("#paraSearch");
     return await page.evaluate(() => {
       const mainContainer = document.getElementById("paraSearch");
@@ -380,13 +433,23 @@ async function checkHasProductTable(page) {
       return false;
     });
   } catch (e) {
-    writeLogLine(logPath, "\nError en checkHasProductTable: " + e.message);
+    writeLogLine(
+      logPath,
+      "######## Error en checkHasProductTable: " + e.message
+    );
   }
   return false;
 }
 
 async function checkIsProductPage(page) {
+  const currentURL = await page.url();
   try {
+    writeLogLine(
+      logPath,
+      "-------- Comprobando si " +
+        currentURL +
+        " es página de producto -------- "
+    );
     await page.waitForSelector("#bodyContainer");
     return await page.evaluate(() => {
       const mainContainer = document.getElementById("bodyContainer");
@@ -397,7 +460,7 @@ async function checkIsProductPage(page) {
       return false;
     });
   } catch (e) {
-    writeLogLine(logPath, "\nError en checkIsProductPage: " + e.message);
+    writeLogLine(logPath, "######## Error en checkIsProductPage: " + e.message);
   }
   return false;
 }
@@ -407,6 +470,10 @@ async function applyInStockFilter(subcategory) {
     var originalUrl = subcategory;
     var regex = /https:\/\/www.newark.com\/c\/([^?]+)/;
     var newString = originalUrl.replace(regex, function (match, categories) {
+      writeLogLine(
+        logPath,
+        "-------- Se aplica filtro con stock a " + subcategory + " -------- "
+      );
       return "https://www.newark.com/w/c/" + categories + "?range=inc-in-stock";
     });
     return newString;
@@ -423,6 +490,10 @@ async function getProductDataFromTable(page, subcategory, category) {
 
   try {
     //itera sobre las paginas de una tabla
+    writeLogLine(
+      logPath,
+      "-------- Iterando en tabla de " + subcategory + " -------- "
+    );
     while (!nextPage.isLast) {
       nextPage = await getNextPage(page);
 
@@ -448,7 +519,7 @@ async function getProductDataFromTable(page, subcategory, category) {
     }
     writeLogLine(
       logPath,
-      "\n-------- Se termina de recorrer productos en tabla de subcategoria " +
+      "-------- Se termina de recorrer productos en tabla de subcategoria " +
         subcategory +
         " -------- "
     );
@@ -466,12 +537,13 @@ async function getProductsDataFromSubcategory(
   isFiltersApplied
 ) {
   let subcategory = subcategoryParam;
+  writeLogLine(logPath, "%%%%%%%% Aviso: Intentando entrar en: " + subcategory);
   await page.goto(subcategory);
 
   if (await checkIsProductPage(page)) {
     writeLogLine(
       logPath,
-      "\nAviso: " + subcategory + " es pagina de producto."
+      "%%%%%%%% Aviso: " + subcategory + " es pagina de producto."
     );
   } else {
     //aplicamos filtros a subcategoria si aun no se han aplicado
@@ -483,10 +555,10 @@ async function getProductsDataFromSubcategory(
       } catch (e) {
         writeLogLine(
           logPath,
-          "\nError al aplicar filtros a subcategoria: " + subcategory
+          "######## Error al aplicar filtros a subcategoria: " + subcategory
         );
-        writeLogLine(logPath, "\nMensaje de error: " + e);
-        writeLogLine(logPath, "\nSe sigue proceso sin aplicar filtros");
+        writeLogLine(logPath, "######## Mensaje de error: " + e);
+        writeLogLine(logPath, "######## Se sigue proceso sin aplicar filtros");
       }
     }
 
@@ -496,20 +568,30 @@ async function getProductsDataFromSubcategory(
       } catch (e) {
         writeLogLine(
           logPath,
-          "\nError en getProductsDataFromSubcategory al recuperar los datos de una tabla en " +
+          "######## Error en getProductsDataFromSubcategory al recuperar los datos de una tabla en " +
             subcategory
         );
-        writeLogLine(logPath, "\nMensaje de error: " + e.message);
-        writeLogLine(logPath, "\nSe sigue proceso con siguiente subcategoria");
+        writeLogLine(logPath, "######## Mensaje de error: " + e.message);
+        writeLogLine(
+          logPath,
+          "######## Se sigue proceso con siguiente subcategoria"
+        );
       }
     } else {
       if (await checkHasMoreSubcategories(page)) {
         try {
+          writeLogLine(
+            logPath,
+            "-------- Página " +
+              subcategory +
+              " tiene más subcategorías -------- "
+          );
           const moreSubcategories = await getSubcategories(page);
           for (const newSubcategory of moreSubcategories) {
             await new Promise((r) => setTimeout(r, 5000));
             await getProductsDataFromSubcategory(
               page,
+              category,
               newSubcategory,
               isFiltersApplied
             );
@@ -517,19 +599,21 @@ async function getProductsDataFromSubcategory(
         } catch (e) {
           writeLogLine(
             logPath,
-            "\nError en getProductsDataFromSubcategory al recuperar otras subcategorias de " +
+            "######## Error en getProductsDataFromSubcategory al recuperar otras subcategorias de " +
               subcategory
           );
-          writeLogLine(logPath, "\nMensaje de error: " + e.message);
+          writeLogLine(logPath, "######## Mensaje de error: " + e.message);
           writeLogLine(
             logPath,
-            "\nSe sigue proceso con siguiente subcategoria"
+            "######## Se sigue proceso con siguiente subcategoria."
           );
         }
       } else {
         writeLogLine(
           logPath,
-          "\nAviso:  " + subcategory + " es pagina en blanco"
+          "%%%%%%%% Aviso:  " +
+            subcategory +
+            " es página en blanco o no tiene más subcategorías."
         );
       }
     }
@@ -539,11 +623,7 @@ async function getProductsDataFromSubcategory(
 async function getAllProductsData(page, categoriesCollection) {
   //29
   for (let i = 0; i < categoriesCollection.length; i++) {
-    for (
-      let j = categoriesCollection[i].subcategories.length - 1;
-      j < categoriesCollection[i].subcategories.length;
-      j++
-    ) {
+    for (let j = 0; j < categoriesCollection[i].subcategories.length; j++) {
       var isFiltersApplied = false;
       await getProductsDataFromSubcategory(
         page,
@@ -554,7 +634,7 @@ async function getAllProductsData(page, categoriesCollection) {
 
       writeLogLine(
         logPath,
-        "\n-------- Se termina de recorrer subcategoria general " +
+        "-------- Se termina de recorrer subcategoria general " +
           categoriesCollection[i].subcategories[j] +
           " -------- "
       );
@@ -564,7 +644,7 @@ async function getAllProductsData(page, categoriesCollection) {
     }
     writeLogLine(
       logPath,
-      "\n-------- Se termina de recorrer categoria " +
+      "-------- Se termina de recorrer categoria " +
         categoriesCollection[i].category +
         " -------- "
     );
@@ -599,7 +679,7 @@ async function getAllCategories(page) {
         });
       });
     } else {
-      writeLogLine(logPath, "\nNo existe mainContainer");
+      writeLogLine(logPath, "%%%%%%%% Aviso: No existe mainContainer");
     }
     return categoriesCollection;
   });
@@ -627,12 +707,12 @@ async function App() {
   } catch (e) {
     writeLogLine(
       logPath,
-      "\nError al recuperar datos de los productos " + e.message
+      "######## Error al recuperar datos de los productos " + e.message
     );
   }
   writeLogLine(
     logPath,
-    "\n******** Se termina ejecucion scraping Newark ********"
+    "******** Se termina ejecucion scraping Newark ********"
   );
   await browser.close();
 }
