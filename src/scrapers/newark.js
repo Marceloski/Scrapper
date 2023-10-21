@@ -15,6 +15,12 @@ puppeteerExtra.use(StealthPlugin());
 createLogDir();
 const logPath = setLogPath(setLogName("newark"));
 
+/**
+ * Obtiene la categoría adecuada a partir de una categoría de página.
+ *
+ * @param {string} pageCategory - La categoría de la página.
+ * @returns {string | null} La categoría correspondiente o null si no se encuentra.
+ */
 const getProperCategory = (pageCategory) => {
   const categoryMappings = {
     EnclosuresRacksCabinets: "Bricolaje",
@@ -55,6 +61,13 @@ const getProperCategory = (pageCategory) => {
   return categoryMappings[pageCategory] || null;
 };
 
+/**
+ * Sube datos de productos a Firebase.
+ *
+ * @param {Array<object>} dataCollection - Colección de datos de productos.
+ * @param {string} categoryParam - Categoría de los productos.
+ * @returns {Promise<void>} Promesa que se resuelve cuando se completan las operaciones.
+ */
 async function uploadProductData(dataCollection, categoryParam) {
   const category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
   const firebaseCategory = getProperCategory(category);
@@ -132,30 +145,13 @@ async function uploadProductData(dataCollection, categoryParam) {
   }
 }
 
-async function getNextPage(page) {
-  const currentURL = await page.url();
-  try {
-    await page.waitForSelector("#paraSearch");
-    await page.waitForSelector(".paginLinks");
-    return await page.evaluate(() => {
-      try {
-        const mainContainer = document.querySelector("#paraSearch");
-        const paginLinks = mainContainer.querySelector(".paginLinks");
-        const paginNextArrow = paginLinks.querySelector(".paginNextArrow");
-
-        if (paginNextArrow) {
-          const aElement = paginNextArrow.querySelector("a");
-          return { isLast: false, href: aElement.getAttribute("href") };
-        } else return { isLast: true, href: "" };
-      } catch (e) {
-        throw new Error(e.message);
-      }
-    });
-  } catch (e) {
-    throw new Error(" En getNextPage: " + currentURL + " Error: " + e.message);
-  }
-}
-
+/**
+ * Obtiene los datos de la página de la tabla de productos.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @param {string[]} tableHeadElements - Los elementos de la cabecera de la tabla.
+ * @returns {Promise<object[]>} Un arreglo de datos de productos.
+ */
 async function getTablePageData(page, tableHeadElements) {
   const currentURL = await page.url();
   try {
@@ -168,17 +164,13 @@ async function getTablePageData(page, tableHeadElements) {
     await page.waitForSelector("#paraSearch");
     return await page.evaluate(async (tableHeadElements) => {
       // Simula desplazamiento de página hacia abajo
-      await new Promise((resolve) => {
-        const scrollInterval = setInterval(() => {
-          window.scrollBy(0, 1500); // Ajusta la cantidad de desplazamiento según tus necesidades
-        }, 2000); // Intervalo entre desplazamientos en milisegundos
+      const scrollInterval = setInterval(() => {
+        window.scrollBy(0, 1500); // Cantidad de desplazamiento
+      }, 2000); // Intervalo entre desplazamientos en milisegundos
 
-        // Se detiene simulacion
-        setTimeout(() => {
-          clearInterval(scrollInterval);
-          resolve();
-        }, 7000);
-      });
+      // Se detiene simulacion
+      await new Promise((r) => setTimeout(r, 7000));
+
       const mainContainer = document.getElementById("paraSearch");
       const tableElement = mainContainer.querySelector("table");
       const tableBodyElement = tableElement.querySelector("tbody");
@@ -329,6 +321,12 @@ async function getTablePageData(page, tableHeadElements) {
   }
 }
 
+/**
+ * Obtiene los elementos de la cabecera de la tabla de productos.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @returns {Promise<string[]>} Un arreglo de elementos de cabecera de la tabla.
+ */
 async function getTableHeadElements(page) {
   const currentURL = await page.url();
   try {
@@ -365,6 +363,12 @@ async function getTableHeadElements(page) {
   }
 }
 
+/**
+ * Obtiene las subcategorías de una página.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @returns {Promise<string[]>} Un arreglo de subcategorías.
+ */
 async function getSubcategories(page) {
   const currentURL = await page.url();
   try {
@@ -398,6 +402,12 @@ async function getSubcategories(page) {
   }
 }
 
+/**
+ * Comprueba si la página tiene más subcategorías.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @returns {Promise<boolean>} `true` si la página tiene más subcategorías, de lo contrario, `false`.
+ */
 async function checkHasMoreSubcategories(page) {
   const currentURL = await page.url();
   try {
@@ -407,15 +417,19 @@ async function checkHasMoreSubcategories(page) {
         currentURL +
         " tiene más subcategorias -------- "
     );
-    await page.waitForSelector("#paraSearch");
+
+    const paraSearch = await page.$("#paraSearch");
+
+    if (!paraSearch) {
+      return false;
+    }
+
     return await page.evaluate(() => {
       const mainContainer = document.getElementById("paraSearch");
       if (mainContainer) {
         const categoryContainer =
           mainContainer.querySelector(".categoryContainer");
-        if (categoryContainer) {
-          return true;
-        }
+        return !!categoryContainer;
       }
       return false;
     });
@@ -431,6 +445,12 @@ async function checkHasMoreSubcategories(page) {
   return false;
 }
 
+/**
+ * Comprueba si la página tiene una tabla de productos.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @returns {Promise<boolean>} `true` si la página tiene una tabla de productos, de lo contrario, `false`.
+ */
 async function checkHasProductTable(page) {
   const currentURL = await page.url();
   try {
@@ -440,14 +460,18 @@ async function checkHasProductTable(page) {
         currentURL +
         " tiene tabla de producto -------- "
     );
-    await page.waitForSelector("#paraSearch");
+
+    const paraSearch = await page.$("#paraSearch");
+
+    if (!paraSearch) {
+      return false;
+    }
+
     return await page.evaluate(() => {
       const mainContainer = document.getElementById("paraSearch");
       if (mainContainer) {
         const tableExists = mainContainer.querySelector("table");
-        if (tableExists) {
-          return true;
-        }
+        return !!tableExists;
       }
       return false;
     });
@@ -463,6 +487,12 @@ async function checkHasProductTable(page) {
   return false;
 }
 
+/**
+ * Comprueba si la página es una página de producto.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @returns {Promise<boolean>} `true` si es una página de producto, de lo contrario, `false`.
+ */
 async function checkIsProductPage(page) {
   const currentURL = await page.url();
   try {
@@ -472,14 +502,17 @@ async function checkIsProductPage(page) {
         currentURL +
         " es página de producto -------- "
     );
-    await page.waitForSelector("#bodyContainer");
+
+    const bodyContainer = await page.$("#bodyContainer");
+
+    if (!bodyContainer) {
+      return false;
+    }
+
     return await page.evaluate(() => {
       const mainContainer = document.getElementById("bodyContainer");
       const productSection = mainContainer.querySelector("#product");
-      if (productSection) {
-        return true;
-      }
-      return false;
+      return !!productSection;
     });
   } catch (e) {
     writeLogLine(
@@ -493,7 +526,13 @@ async function checkIsProductPage(page) {
   return false;
 }
 
-async function applyInStockFilter(subcategory) {
+/**
+ * Aplica un filtro de stock a la URL de la subcategoría.
+ *
+ * @param {string} subcategory - URL de la subcategoría.
+ * @returns {string} URL con el filtro de stock aplicado.
+ */
+function applyInStockFilter(subcategory) {
   if (subcategory.includes("newark.com/c/")) {
     try {
       var regex = /https:\/\/www.newark.com\/c\/([^?]+)/;
@@ -537,11 +576,58 @@ async function applyInStockFilter(subcategory) {
   }
 }
 
+/**
+ * Obtiene la siguiente página de productos.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @returns {Promise<{ isLast: boolean, href: string, accessDenied: boolean }>} Información de la siguiente página.
+ */
+async function getNextPage(page) {
+  const currentURL = await page.url();
+  try {
+    const paraSearch = await page.$("#paraSearch");
+
+    if (!paraSearch) {
+      return { isLast: true, href: currentURL, accessDenied: true };
+    }
+
+    await page.waitForSelector(".paginLinks");
+    return await page.evaluate(() => {
+      try {
+        const mainContainer = document.querySelector("#paraSearch");
+        const paginLinks = mainContainer.querySelector(".paginLinks");
+        const paginNextArrow = paginLinks.querySelector(".paginNextArrow");
+
+        if (paginNextArrow) {
+          const aElement = paginNextArrow.querySelector("a");
+          return {
+            isLast: false,
+            href: aElement.getAttribute("href"),
+            accessDenied: false,
+          };
+        } else return { isLast: true, href: "", accessDenied: false };
+      } catch (e) {
+        throw new Error(
+          " En getNextPage: " + currentURL + " Error: " + e.message
+        );
+      }
+    });
+  } catch (e) {
+    throw new Error(" En getNextPage: " + currentURL + " Error: " + e.message);
+  }
+}
+
+/**
+ * Obtiene datos de productos de una tabla en una subcategoría.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @param {string} subcategory - URL de la subcategoría.
+ * @param {string} category - Categoría de los productos.
+ */
 async function getProductDataFromTable(page, subcategory, category) {
   //se inicializa nextPage no siendo pagina final
   let nextPage = { isLast: false };
 
-  const currentURL = await page.url();
   const productDataFromTable = [];
 
   try {
@@ -550,13 +636,28 @@ async function getProductDataFromTable(page, subcategory, category) {
       logPath,
       "-------- Iterando en tabla de " + subcategory + " -------- "
     );
+    //mientras la pagina no sea ultima
     while (!nextPage.isLast) {
+      const currentURL = await page.url();
+      let tablePageData;
+      //antes de recuperar datos en la tabla, obtenemos la siguiente pagina
       nextPage = await getNextPage(page);
 
-      if (nextPage) {
+      //si pagina es de acceso denegado
+      if (nextPage?.accessDenied === true) {
+        writeLogLine(
+          logPath,
+          "%%%%%%%% En página " +
+            nextPage.href +
+            " se denegó el acceso %%%%%%%% "
+        );
+        //
+      } else {
         const tableHeadElements = await getTableHeadElements(page);
+
         //obtiene los datos de productos de la tabla
-        const tablePageData = await getTablePageData(page, tableHeadElements);
+        tablePageData = await getTablePageData(page, tableHeadElements);
+
         //sube los datos a firebase
         if (tablePageData.length != 0) {
           await uploadProductData(tablePageData, category)
@@ -570,13 +671,13 @@ async function getProductDataFromTable(page, subcategory, category) {
               );
             });
         }
-        //console.log(tablePageData);
-        if (!nextPage.isLast) {
-          await new Promise((r) => setTimeout(r, 5000));
-          await page.goto(nextPage.href);
-        }
-        productDataFromTable.push(...tablePageData);
       }
+      //si pagina no es la ultima, cambia a la siguiente pagina
+      if (!nextPage.isLast) {
+        await new Promise((r) => setTimeout(r, 5000));
+        await page.goto(nextPage.href);
+      }
+      productDataFromTable.push(...tablePageData);
     }
     writeLogLine(
       logPath,
@@ -588,11 +689,22 @@ async function getProductDataFromTable(page, subcategory, category) {
     return true;
   } catch (e) {
     throw new Error(
-      " Error en getProductDataFromTable " + currentURL + " Error: " + e.message
+      " Error en getProductDataFromTable " +
+        subcategory +
+        " Error: " +
+        e.message
     );
   }
 }
 
+/**
+ * Obtiene datos de productos de una subcategoría.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @param {string} category - Categoría de los productos.
+ * @param {string} subcategoryParam - URL de la subcategoría.
+ * @param {boolean} isFiltersApplied - Indica si se aplicaron filtros.
+ */
 async function getProductsDataFromSubcategory(
   page,
   category,
@@ -614,8 +726,9 @@ async function getProductsDataFromSubcategory(
     //aplicamos filtros a subcategoria si aun no se han aplicado
     if (!isFiltersApplied) {
       try {
-        subcategory = await applyInStockFilter(subcategory);
+        subcategory = applyInStockFilter(subcategory);
         isFiltersApplied = true;
+        await new Promise((r) => setTimeout(r, 5000));
         await page.goto(subcategory);
       } catch (e) {
         writeLogLine(
@@ -632,7 +745,7 @@ async function getProductsDataFromSubcategory(
     if (await checkHasProductTable(page)) {
       writeLogLine(
         logPath,
-        "-------- Página " + currentURL + " tiene tabla de productos --------"
+        "-------- Página " + subcategory + " tiene tabla de productos --------"
       );
       await getProductDataFromTable(page, subcategory, category)
         .then()
@@ -687,10 +800,21 @@ async function getProductsDataFromSubcategory(
   }
 }
 
+/**
+ * Recopila datos de productos de varias categorías y subcategorías en una página web.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @param {Array<{ category: string, subcategories: Array<string> }>} categoriesCollection - Una colección de categorías y sus subcategorías.
+ * @returns {boolean} Retorna true después de recopilar los datos de productos.
+ */
 async function getAllProductsData(page, categoriesCollection) {
   //29
-  for (let i = 1; i < categoriesCollection.length; i++) {
-    for (let j = 0; j < categoriesCollection[i].subcategories.length; j++) {
+  for (let i = 0; i < categoriesCollection.length; i++) {
+    for (
+      let j = categoriesCollection[i].subcategories.length - 1;
+      j < categoriesCollection[i].subcategories.length;
+      j++
+    ) {
       var isFiltersApplied = false;
       await getProductsDataFromSubcategory(
         page,
@@ -715,10 +839,17 @@ async function getAllProductsData(page, categoriesCollection) {
         categoriesCollection[i].category +
         " -------- "
     );
+    await new Promise((r) => setTimeout(r, 5000));
   }
   return true;
 }
 
+/**
+ * Obtiene todas las categorías y subcategorías.
+ *
+ * @param {import('puppeteer').Page} page - La página de Puppeteer.
+ * @returns {Promise<{ category: string, subcategories: string[] }[]>} Colección de categorías y subcategorías.
+ */
 async function getAllCategories(page) {
   writeLogLine(logPath, "-------- Obteniendo Categorías -------- ");
   //recuperar categorias y subcategorias
@@ -767,6 +898,12 @@ async function App() {
   });
   createLog(logPath, "******** Se comienza ejecucion scraping Newark ********");
   const page = await browser.newPage();
+  await page.setUserAgent(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"
+  );
+  await page.setExtraHTTPHeaders({
+    DNT: "1",
+  });
   await page.setViewport({ width: 1920, height: 1080 });
 
   const PAGE_TO_VERIFY = null;
