@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 export function setLogPath(logName) {
-  return path.join("logs", logName)
+  return path.join("logs", logName);
 }
 
 export function createLogDir() {
@@ -12,13 +12,17 @@ export function createLogDir() {
 }
 
 export function setLogName(scraperName) {
-  const dateTime = new Date();
-  const date = "-" + dateTime.toISOString().split("T")[0] + "-";
-  const time = dateTime
+  const now = new Date();
+  const actualHour = now.getHours();
+  const actualMins = now.getMinutes();
+  const actualSecs = now.getSeconds();
+  const date = "-" + now.toISOString().split("T")[0] + "-";
+  const time = now
     .toTimeString()
     .split(" ")[0]
     .replace(/:/g, " -")
     .replace(/\s+/g, "");
+  //const time = actualHour + ":" + actualMins + ":" + actualSecs;
   return scraperName + date + time + ".txt";
 }
 
@@ -31,9 +35,25 @@ export function createLog(logName, message) {
 }
 
 export function writeLogLine(logName, message) {
-  fs.appendFile(logName, "\n"+message, (err) => {
-    if (err) {
-      console.error("Error al escribir en el archivo de log:", err);
+  const now = new Date();
+  const actualHour = now.getHours();
+  const actualMins = now.getMinutes();
+  const actualSecs = now.getSeconds();
+  fs.appendFile(
+    logName,
+    "\n" +
+      "Tiempo: " +
+      actualHour +
+      ":" +
+      actualMins +
+      ":" +
+      actualSecs +
+      "  " +
+      message,
+    (err) => {
+      if (err) {
+        console.error(err);
+      }
     }
-  });
+  );
 }
