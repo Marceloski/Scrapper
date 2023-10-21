@@ -78,11 +78,11 @@ async function uploadProductData(dataCollection, categoryParam) {
           const newProductRef = await productsRef.add(data);
           writeLogLine(
             logPath,
-            "-------- Nuevo producto añadido con ID : " +
+            "&&&&&&&& Nuevo producto añadido con ID : " +
               newProductRef.id +
               " en categoria " +
               firebaseCategory +
-              " --------"
+              " &&&&&&&&"
           );
         } else {
           // Si se encuentran productos que calzen con los datos
@@ -111,11 +111,11 @@ async function uploadProductData(dataCollection, categoryParam) {
               });
               writeLogLine(
                 logPath,
-                "-------- Datos de proveedores actualizado para el producto: " +
+                "&&&&&&&& Datos de proveedores actualizado para el producto: " +
                   productSnapshot.id +
                   " en categoria " +
                   firebaseCategory +
-                  " --------"
+                  " &&&&&&&&"
               );
             }
           });
@@ -133,6 +133,7 @@ async function uploadProductData(dataCollection, categoryParam) {
 }
 
 async function getNextPage(page) {
+  const currentURL = await page.url();
   try {
     await page.waitForSelector("#paraSearch");
     await page.waitForSelector(".paginLinks");
@@ -151,7 +152,7 @@ async function getNextPage(page) {
       }
     });
   } catch (e) {
-    throw new Error("Error en getNextPage " + e.message);
+    throw new Error(" En getNextPage: " + currentURL + " Error: " + e.message);
   }
 }
 
@@ -160,7 +161,7 @@ async function getTablePageData(page, tableHeadElements) {
   try {
     writeLogLine(
       logPath,
-      "-------- Obteniedo los datos de productos en: " +
+      "-------- Obteniendo los datos de productos en: " +
         currentURL +
         " -------- "
     );
@@ -319,7 +320,12 @@ async function getTablePageData(page, tableHeadElements) {
       return tablePageData;
     }, tableHeadElements);
   } catch (e) {
-    throw new Error("Error en getTablePageData " + e.message);
+    throw new Error(
+      "######## Error en getTablePageData " +
+        currentURL +
+        " Error: " +
+        e.message
+    );
   }
 }
 
@@ -328,7 +334,7 @@ async function getTableHeadElements(page) {
   try {
     writeLogLine(
       logPath,
-      "-------- Obteniedo los encabzados de la tabla de productos en: " +
+      "-------- Obteniendo los encabezados de la tabla de productos en: " +
         currentURL +
         " -------- "
     );
@@ -350,7 +356,12 @@ async function getTableHeadElements(page) {
       return tableHeadElementsData;
     });
   } catch (e) {
-    throw new Error("Error en getTableHeadElements " + e.message);
+    throw new Error(
+      "######## Error en getTableHeadElements " +
+        currentURL +
+        " Error: " +
+        e.message
+    );
   }
 }
 
@@ -378,7 +389,12 @@ async function getSubcategories(page) {
       return subcategories;
     });
   } catch (e) {
-    throw new Error("Error en getSubcategories : " + e.message);
+    throw new Error(
+      "######## Error en getSubcategories " +
+        currentURL +
+        " Error: " +
+        e.message
+    );
   }
 }
 
@@ -406,7 +422,10 @@ async function checkHasMoreSubcategories(page) {
   } catch (e) {
     writeLogLine(
       logPath,
-      "######## Error en checkHasMoreSubcategories: " + e.message
+      "######## Error en checkHasMoreSubcategories " +
+        currentURL +
+        " Error: " +
+        e.message
     );
   }
   return false;
@@ -435,7 +454,10 @@ async function checkHasProductTable(page) {
   } catch (e) {
     writeLogLine(
       logPath,
-      "######## Error en checkHasProductTable: " + e.message
+      "######## Error en checkHasProductTable " +
+        currentURL +
+        " Error: " +
+        e.message
     );
   }
   return false;
@@ -460,25 +482,58 @@ async function checkIsProductPage(page) {
       return false;
     });
   } catch (e) {
-    writeLogLine(logPath, "######## Error en checkIsProductPage: " + e.message);
+    writeLogLine(
+      logPath,
+      "######## Error en checkIsProductPage: " +
+        currentURL +
+        " Error: " +
+        e.message
+    );
   }
   return false;
 }
 
 async function applyInStockFilter(subcategory) {
-  try {
-    var originalUrl = subcategory;
-    var regex = /https:\/\/www.newark.com\/c\/([^?]+)/;
-    var newString = originalUrl.replace(regex, function (match, categories) {
-      writeLogLine(
-        logPath,
-        "-------- Se aplica filtro con stock a " + subcategory + " -------- "
+  if (subcategory.includes("newark.com/c/")) {
+    try {
+      var regex = /https:\/\/www.newark.com\/c\/([^?]+)/;
+      var newString = subcategory.replace(regex, function (match, categories) {
+        writeLogLine(
+          logPath,
+          "-------- Se aplica filtro con stock a " + subcategory + " -------- "
+        );
+        return (
+          "https://www.newark.com/w/c/" + categories + "?range=inc-in-stock"
+        );
+      });
+      return newString;
+    } catch (e) {
+      throw new Error(
+        "######## Error en applyInStockFilter " +
+          subcategory +
+          " Error: " +
+          e.message
       );
-      return "https://www.newark.com/w/c/" + categories + "?range=inc-in-stock";
-    });
-    return newString;
-  } catch (e) {
-    throw new Error("Error en applyInStockFilter" + e.message);
+    }
+  } else {
+    try {
+      if (subcategory.includes("newark.com/search")) {
+        var regex = /\d+/;
+        var newString = subcategory.replace(regex, "$&&range=inc-in-stock");
+        writeLogLine(
+          logPath,
+          "-------- Se aplica filtro con stock a " + subcategory + " -------- "
+        );
+        return newString;
+      }
+    } catch (e) {
+      throw new Error(
+        "######## Error en applyInStockFilter " +
+          subcategory +
+          " Error: " +
+          e.message
+      );
+    }
   }
 }
 
@@ -486,6 +541,7 @@ async function getProductDataFromTable(page, subcategory, category) {
   //se inicializa nextPage no siendo pagina final
   let nextPage = { isLast: false };
 
+  const currentURL = await page.url();
   const productDataFromTable = [];
 
   try {
@@ -506,7 +562,12 @@ async function getProductDataFromTable(page, subcategory, category) {
           await uploadProductData(tablePageData, category)
             .then()
             .catch((e) => {
-              throw new Error(e.message);
+              throw new Error(
+                "######## Error en uploadProductData " +
+                  currentURL +
+                  " Error: " +
+                  e.message
+              );
             });
         }
         //console.log(tablePageData);
@@ -526,7 +587,9 @@ async function getProductDataFromTable(page, subcategory, category) {
     //se simula retorno de datos
     return true;
   } catch (e) {
-    throw new Error("Error en getProductDataFromTable " + e.message);
+    throw new Error(
+      " Error en getProductDataFromTable " + currentURL + " Error: " + e.message
+    );
   }
 }
 
@@ -537,6 +600,8 @@ async function getProductsDataFromSubcategory(
   isFiltersApplied
 ) {
   let subcategory = subcategoryParam;
+  const currentURL = await page.url();
+
   writeLogLine(logPath, "%%%%%%%% Aviso: Intentando entrar en: " + subcategory);
   await page.goto(subcategory);
 
@@ -555,35 +620,39 @@ async function getProductsDataFromSubcategory(
       } catch (e) {
         writeLogLine(
           logPath,
-          "######## Error al aplicar filtros a subcategoria: " + subcategory
+          "######## Error al aplicar filtros a subcategoria: " +
+            subcategory +
+            " Error: " +
+            e.message +
+            " Se sigue proceso sin aplicar filtros"
         );
-        writeLogLine(logPath, "######## Mensaje de error: " + e);
-        writeLogLine(logPath, "######## Se sigue proceso sin aplicar filtros");
       }
     }
 
     if (await checkHasProductTable(page)) {
-      try {
-        await getProductDataFromTable(page, subcategory, category);
-      } catch (e) {
-        writeLogLine(
-          logPath,
-          "######## Error en getProductsDataFromSubcategory al recuperar los datos de una tabla en " +
-            subcategory
-        );
-        writeLogLine(logPath, "######## Mensaje de error: " + e.message);
-        writeLogLine(
-          logPath,
-          "######## Se sigue proceso con siguiente subcategoria"
-        );
-      }
+      writeLogLine(
+        logPath,
+        "-------- Página " + currentURL + " tiene tabla de productos --------"
+      );
+      await getProductDataFromTable(page, subcategory, category)
+        .then()
+        .catch((e) => {
+          writeLogLine(
+            logPath,
+            "######## Error en getProductsDataFromSubcategory " +
+              subcategory +
+              " Error : " +
+              e.message +
+              " Se sigue proceso con siguiente subcategoria"
+          );
+        });
     } else {
       if (await checkHasMoreSubcategories(page)) {
         try {
           writeLogLine(
             logPath,
             "-------- Página " +
-              subcategory +
+              currentURL +
               " tiene más subcategorías -------- "
           );
           const moreSubcategories = await getSubcategories(page);
@@ -599,13 +668,11 @@ async function getProductsDataFromSubcategory(
         } catch (e) {
           writeLogLine(
             logPath,
-            "######## Error en getProductsDataFromSubcategory al recuperar otras subcategorias de " +
-              subcategory
-          );
-          writeLogLine(logPath, "######## Mensaje de error: " + e.message);
-          writeLogLine(
-            logPath,
-            "######## Se sigue proceso con siguiente subcategoria."
+            "######## Error en getProductsDataFromSubcategory " +
+              subcategory +
+              " Error: " +
+              e.message +
+              " Se sigue proceso con siguiente subcategoria."
           );
         }
       } else {
@@ -622,7 +689,7 @@ async function getProductsDataFromSubcategory(
 
 async function getAllProductsData(page, categoriesCollection) {
   //29
-  for (let i = 0; i < categoriesCollection.length; i++) {
+  for (let i = 1; i < categoriesCollection.length; i++) {
     for (let j = 0; j < categoriesCollection[i].subcategories.length; j++) {
       var isFiltersApplied = false;
       await getProductsDataFromSubcategory(
@@ -653,6 +720,7 @@ async function getAllProductsData(page, categoriesCollection) {
 }
 
 async function getAllCategories(page) {
+  writeLogLine(logPath, "-------- Obteniendo Categorías -------- ");
   //recuperar categorias y subcategorias
   await page.goto("https://www.newark.com/browse-for-products");
   await page.waitForSelector(".categoryContainer");
@@ -700,20 +768,29 @@ async function App() {
   createLog(logPath, "******** Se comienza ejecucion scraping Newark ********");
   const page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 });
-  const categoriesCollection = await getAllCategories(page);
 
-  try {
-    await getAllProductsData(page, categoriesCollection);
-  } catch (e) {
+  const PAGE_TO_VERIFY = null;
+  // "https://www.newark.com/search?categoryId=800000282001";
+
+  if (PAGE_TO_VERIFY) {
+    console.log(applyInStockFilter(PAGE_TO_VERIFY));
+  } else {
+    const categoriesCollection = await getAllCategories(page);
+
+    try {
+      await getAllProductsData(page, categoriesCollection);
+    } catch (e) {
+      writeLogLine(
+        logPath,
+        "######## Error al recuperar datos de los productos " + e.message
+      );
+    }
     writeLogLine(
       logPath,
-      "######## Error al recuperar datos de los productos " + e.message
+      "******** Se termina ejecucion scraping Newark ********"
     );
   }
-  writeLogLine(
-    logPath,
-    "******** Se termina ejecucion scraping Newark ********"
-  );
+
   await browser.close();
 }
 
