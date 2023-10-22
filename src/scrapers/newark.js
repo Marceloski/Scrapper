@@ -201,10 +201,13 @@ async function getTablePageData(page, tableHeadElements) {
           switch (j) {
             //manufacturerPartNo y imgSrc
             case 1:
+              const aElement = tableRowData[j].querySelector("a");
               const imgElement = tableRowData[j].querySelector("img");
 
               productObj.manufacturerPartNo = imgElement.getAttribute("title");
               productObj.imgSrc = imgElement.getAttribute("data-src");
+              productObj.suppliers[0].productUrl =
+                aElement.getAttribute("href");
               break;
             //newarkPartNo
             case 2:
@@ -810,11 +813,7 @@ async function getProductsDataFromSubcategory(
 async function getAllProductsData(page, categoriesCollection) {
   //29
   for (let i = 0; i < categoriesCollection.length; i++) {
-    for (
-      let j = categoriesCollection[i].subcategories.length - 1;
-      j < categoriesCollection[i].subcategories.length;
-      j++
-    ) {
+    for (let j = 0; j < categoriesCollection[i].subcategories.length; j++) {
       var isFiltersApplied = false;
       await getProductsDataFromSubcategory(
         page,
@@ -906,6 +905,7 @@ async function App() {
   });
   await page.setViewport({ width: 1920, height: 1080 });
 
+  //se ocupa para verificar una pagina en concreto. Si es null el scraper se ejecuta de manera normal.
   const PAGE_TO_VERIFY = null;
   // "https://www.newark.com/search?categoryId=800000282001";
 
