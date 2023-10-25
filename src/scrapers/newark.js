@@ -58,89 +58,81 @@ const getProperCategory = (pageCategory) => {
     IndustrialSBCsEmbeddedSystems: "Computación",
     SemiconductorsICs: "Electrónica",
   };
-  return categoryMappings[pageCategory] || null;
+  return categoryMappings[pageCategory] || "Sin categoría";
 };
 
 /**
  * Sube datos de productos a Firebase.
  *
  * @param {Array<object>} dataCollection - Colección de datos de productos.
- * @param {string} categoryParam - Categoría de los productos.
  * @returns {Promise<void>} Promesa que se resuelve cuando se completan las operaciones.
  */
-async function uploadProductData(dataCollection, categoryParam) {
-  const category = categoryParam.replace(/[^\w\s]/gi, "").replace(/\s+/g, "");
-  const firebaseCategory = getProperCategory(category);
+async function uploadProductData(dataCollection) {
+  const productsRef = db.collection("products");
 
-  if (firebaseCategory != null) {
-    const productsRef = db
-      .collection("categories")
-      .doc(firebaseCategory)
-      .collection("products");
+  for (const data of dataCollection) {
+    try {
+      // Comprobamos si es que existen productos con los datos del producto
+      const productsSnapshot = await productsRef
+        .where("manufacturer", "==", data.manufacturer)
+        .where("manufacturerPartNo", "==", data.manufacturerPartNo)
+        .limit(1)
+        .get();
 
-    for (const data of dataCollection) {
-      try {
-        // Comprobamos si es que existen productos con los datos del producto
-        const productsSnapshot = await productsRef
-          .where("manufacturer", "==", data.manufacturer)
-          .where("manufacturerPartNo", "==", data.manufacturerPartNo)
-          .get();
-
-        // Si no hay productos que calzen con los datos
-        if (productsSnapshot.empty) {
-          const newProductRef = await productsRef.add(data);
-          writeLogLine(
-            logPath,
-            "&&&&&&&& Nuevo producto añadido con ID : " +
-              newProductRef.id +
-              " en categoria " +
-              firebaseCategory +
-              " &&&&&&&&"
-          );
-        } else {
-          // Si se encuentran productos que calzen con los datos
-          productsSnapshot.docs.forEach(async (productSnapshot) => {
-            const productData = productSnapshot.data();
-
-            if (productData.suppliers) {
-              // Se comprueba si newark está como proveedor
-              const newarkIndex = productData.suppliers.findIndex(
-                (supplier) => supplier.supplier === "newark"
-              );
-
-              // Si existe newark como proveedor
-              if (newarkIndex !== -1) {
-                // Reemplazamos los datos para newark
-                productData.suppliers[newarkIndex] = data.suppliers[0];
-                // Si no existe newark como proveedor
-              } else {
-                // Añadimos a newark como proveedor
-                productData.suppliers.push(data.suppliers[0]);
-              }
-
-              // Actualizamos el dato del producto con el arreglo de proveedores actualizado
-              await productsRef.doc(productSnapshot.id).update({
-                suppliers: productData.suppliers,
-              });
-              writeLogLine(
-                logPath,
-                "&&&&&&&& Datos de proveedores actualizado para el producto: " +
-                  productSnapshot.id +
-                  " en categoria " +
-                  firebaseCategory +
-                  " &&&&&&&&"
-              );
-            }
-          });
-        }
-      } catch (error) {
+      // Si no hay productos que calzen con los datos
+      if (productsSnapshot.empty) {
+        const newProductRef = await productsRef.add(data);
         writeLogLine(
           logPath,
-          "******** Error procesando los datos del producto: " +
-            error.message +
-            " ********"
+          "&&&&&&&& Nuevo producto añadido con ID : " +
+            newProductRef.id +
+            " en categoria " +
+            data.productCategory +
+            " &&&&&&&&"
         );
+      } else {
+        // Si se encuentran productos que calzen con los datos
+        productsSnapshot.docs.forEach(async (productSnapshot) => {
+          const productData = productSnapshot.data();
+
+          if (productData.suppliers) {
+            // Se comprueba si newark está como proveedor
+            const newarkIndex = productData.suppliers.findIndex(
+              (supplier) => supplier.supplier === "newark"
+            );
+
+            // Si existe newark como proveedor
+            if (newarkIndex !== -1) {
+              // Reemplazamos los datos para newark
+              productData.suppliers[newarkIndex] = data.suppliers[0];
+              // Si no existe newark como proveedor
+            } else {
+              // Añadimos a newark como proveedor
+              productData.suppliers.push(data.suppliers[0]);
+            }
+
+            // Actualizamos el dato del producto con el arreglo de proveedores actualizado
+            await productsRef.doc(productSnapshot.id).update({
+              suppliers: productData.suppliers,
+            });
+            writeLogLine(
+              logPath,
+              "&&&&&&&& Datos de proveedores actualizado para el producto: " +
+                productSnapshot.id +
+                " en categoria " +
+                data.productCategory +
+                " &&&&&&&&"
+            );
+          }
+        });
       }
+    } catch (error) {
+      writeLogLine(
+        logPath,
+        "******** Error procesando los datos del producto: " +
+          error.message +
+          " ********"
+      );
     }
   }
 }
@@ -150,9 +142,11 @@ async function uploadProductData(dataCollection, categoryParam) {
  *
  * @param {import('puppeteer').Page} page - La página de Puppeteer.
  * @param {string[]} tableHeadElements - Los elementos de la cabecera de la tabla.
+ * @param {string} categoryParam - Categoría de los productos.
  * @returns {Promise<object[]>} Un arreglo de datos de productos.
  */
-async function getTablePageData(page, tableHeadElements) {
+async function getTablePageData(page, tableHeadElements, categoryParam) {
+  const category = categoryParam;
   const currentURL = await page.url();
   try {
     writeLogLine(
@@ -162,158 +156,165 @@ async function getTablePageData(page, tableHeadElements) {
         " -------- "
     );
     await page.waitForSelector("#paraSearch");
-    return await page.evaluate(async (tableHeadElements) => {
-      // Simula desplazamiento de página hacia abajo
-      const scrollInterval = setInterval(() => {
-        window.scrollBy(0, 1500); // Cantidad de desplazamiento
-      }, 2000); // Intervalo entre desplazamientos en milisegundos
+    return await page.evaluate(
+      async (tableHeadElements, category) => {
+        // Simula desplazamiento de página hacia abajo
+        const scrollInterval = setInterval(() => {
+          window.scrollBy(0, 1500); // Cantidad de desplazamiento
+        }, 2000); // Intervalo entre desplazamientos en milisegundos
 
-      // Se detiene simulacion
-      await new Promise((r) => setTimeout(r, 7000));
+        // Se detiene simulacion
+        await new Promise((r) => setTimeout(r, 7000));
 
-      const mainContainer = document.getElementById("paraSearch");
-      const tableElement = mainContainer.querySelector("table");
-      const tableBodyElement = tableElement.querySelector("tbody");
-      const tableRows = tableBodyElement.querySelectorAll(".productRow");
-      const tablePageData = [];
+        const mainContainer = document.getElementById("paraSearch");
+        const tableElement = mainContainer.querySelector("table");
+        const tableBodyElement = tableElement.querySelector("tbody");
+        const tableRows = tableBodyElement.querySelectorAll(".productRow");
+        const tablePageData = [];
 
-      //recorriendo filas de la tabla (recorriendo filas de productos en tabla)
-      for (let i = 0; i < tableRows.length; i++) {
-        //obteniendo las casillas de una fila
-        const tableRowData = tableRows[i].children;
-        const productObj = {
-          manufacturer: "",
-          manufacturerPartNo: "",
-          imgSrc: "",
-          description: "",
-          suppliers: [
-            {
-              supplier: "newark",
-              prices: [],
-              stock: [],
-              productUrl: "",
-            },
-          ],
-        };
+        //recorriendo filas de la tabla (recorriendo filas de productos en tabla)
+        for (let i = 0; i < tableRows.length; i++) {
+          //obteniendo las casillas de una fila
+          const tableRowData = tableRows[i].children;
+          const productObj = {
+            manufacturer: "",
+            manufacturerPartNo: "",
+            imgSrc: "",
+            description: "",
+            productCategory: category,
+            suppliers: [
+              {
+                supplier: "newark",
+                prices: [],
+                stock: [],
+                productUrl: "",
+              },
+            ],
+          };
 
-        //se empieza a iterar desde la segunda casilla, ya que la primera esta vacia (recorriendo datos de productos en tabla)
-        for (let j = 1; j < tableRowData.length; j++) {
-          switch (j) {
-            //manufacturerPartNo y imgSrc
-            case 1:
-              const aElement = tableRowData[j].querySelector("a");
-              const imgElement = tableRowData[j].querySelector("img");
+          //se empieza a iterar desde la segunda casilla, ya que la primera esta vacia (recorriendo datos de productos en tabla)
+          for (let j = 1; j < tableRowData.length; j++) {
+            switch (j) {
+              //manufacturerPartNo y imgSrc
+              case 1:
+                const aElement = tableRowData[j].querySelector("a");
+                const imgElement = tableRowData[j].querySelector("img");
 
-              productObj.manufacturerPartNo = imgElement.getAttribute("title");
-              productObj.imgSrc = imgElement.getAttribute("data-src");
-              productObj.suppliers[0].productUrl =
-                aElement.getAttribute("href");
-              break;
-            //newarkPartNo
-            case 2:
-              const skuElement = tableRowData[j].querySelector(".sku");
+                productObj.manufacturerPartNo =
+                  imgElement.getAttribute("title");
+                productObj.imgSrc = imgElement.getAttribute("data-src");
+                productObj.suppliers[0].productUrl =
+                  aElement.getAttribute("href");
+                break;
+              //newarkPartNo
+              case 2:
+                const skuElement = tableRowData[j].querySelector(".sku");
 
-              productObj.suppliers[0].newarkPartNo =
-                skuElement.textContent.trim();
-              break;
-            //description y manufacturer
-            case 3:
-              const descriptionElement =
-                tableRowData[j].querySelector(".productDecription");
-              const manufacturerElement =
-                tableRowData[j].querySelector(".manufacturerName");
+                productObj.suppliers[0].newarkPartNo =
+                  skuElement.textContent.trim();
+                break;
+              //description y manufacturer
+              case 3:
+                const descriptionElement =
+                  tableRowData[j].querySelector(".productDecription");
+                const manufacturerElement =
+                  tableRowData[j].querySelector(".manufacturerName");
 
-              productObj.description = descriptionElement.textContent.trim();
-              productObj.manufacturer = manufacturerElement.textContent.trim();
-              break;
-            //stock
-            case 4:
-              const stockElements =
-                tableRowData[j].querySelectorAll(".enhanceInStkTxt");
+                productObj.description = descriptionElement.textContent.trim();
+                productObj.manufacturer =
+                  manufacturerElement.textContent.trim();
+                break;
+              //stock
+              case 4:
+                const stockElements =
+                  tableRowData[j].querySelectorAll(".enhanceInStkTxt");
 
-              if (stockElements.length > 0) {
-                stockElements.forEach((stockInCountry) => {
-                  const singleSpanElement =
-                    stockInCountry.querySelector(".inStockBold");
+                if (stockElements.length > 0) {
+                  stockElements.forEach((stockInCountry) => {
+                    const singleSpanElement =
+                      stockInCountry.querySelector(".inStockBold");
 
-                  if (singleSpanElement) {
-                    productObj.suppliers[0].stock.push({
-                      country: "us",
-                      stock: singleSpanElement.textContent.trim(),
-                    });
-                  } else {
-                    const elementText = stockInCountry.textContent.replace(
-                      /\s+/g,
-                      ""
-                    );
-                    const stock = stockInCountry
-                      .querySelector("span")
-                      .textContent.trim();
-
-                    if (elementText.indexOf("USwarehouse") !== -1) {
+                    if (singleSpanElement) {
                       productObj.suppliers[0].stock.push({
                         country: "us",
-                        stock: stock,
+                        stock: singleSpanElement.textContent.trim(),
                       });
-                    } else if (elementText.indexOf("UKStock") !== -1) {
-                      productObj.suppliers[0].stock.push({
-                        country: "uk",
-                        stock: stock,
-                      });
+                    } else {
+                      const elementText = stockInCountry.textContent.replace(
+                        /\s+/g,
+                        ""
+                      );
+                      const stock = stockInCountry
+                        .querySelector("span")
+                        .textContent.trim();
+
+                      if (elementText.indexOf("USwarehouse") !== -1) {
+                        productObj.suppliers[0].stock.push({
+                          country: "us",
+                          stock: stock,
+                        });
+                      } else if (elementText.indexOf("UKStock") !== -1) {
+                        productObj.suppliers[0].stock.push({
+                          country: "uk",
+                          stock: stock,
+                        });
+                      }
                     }
-                  }
-                });
-              } else {
-                productObj.suppliers[0].stock.length = 0;
-              }
+                  });
+                } else {
+                  productObj.suppliers[0].stock.length = 0;
+                }
 
-              break;
-            //priceFor (cantidad que se basa el precio expuesto)
-            case 5:
-              const priceForElement =
-                tableRowData[j].querySelector(".priceFor");
+                break;
+              //priceFor (cantidad que se basa el precio expuesto)
+              case 5:
+                const priceForElement =
+                  tableRowData[j].querySelector(".priceFor");
 
-              productObj.priceFor = priceForElement.textContent
-                .replace(/\s+/g, " ")
-                .trim();
-              break;
+                productObj.priceFor = priceForElement.textContent
+                  .replace(/\s+/g, " ")
+                  .trim();
+                break;
 
-            case 6:
-              const priceElement = tableRowData[j].querySelector(".price");
-              const pricesCollection =
-                priceElement.querySelectorAll(".priceBreak");
+              case 6:
+                const priceElement = tableRowData[j].querySelector(".price");
+                const pricesCollection =
+                  priceElement.querySelectorAll(".priceBreak");
 
-              for (const priceSpan of pricesCollection) {
-                const quantity = priceSpan.querySelector(".qty");
-                const quantityPrice =
-                  priceSpan.querySelector(".qty_price_range");
+                for (const priceSpan of pricesCollection) {
+                  const quantity = priceSpan.querySelector(".qty");
+                  const quantityPrice =
+                    priceSpan.querySelector(".qty_price_range");
 
-                productObj.suppliers[0].prices.push({
-                  quantity: quantity.textContent.trim(),
-                  price: quantityPrice.textContent.trim(),
-                });
-              }
-              break;
+                  productObj.suppliers[0].prices.push({
+                    quantity: quantity.textContent.trim(),
+                    price: quantityPrice.textContent.trim(),
+                  });
+                }
+                break;
 
-            case 7:
-              //se salta celda de cantidad de producto
-              break;
+              case 7:
+                //se salta celda de cantidad de producto
+                break;
 
-            default:
-              //agregar a descripcion extra del producto
-              if (tableRowData[j].textContent.trim() === "-") break;
-              const objField = tableHeadElements[j - 1]
-                .replace(/[^\w\s]/gi, "")
-                .replace(/\s+/g, "");
-              productObj.suppliers[0][objField] =
-                tableRowData[j].textContent.trim();
-              break;
+              default:
+                //agregar a descripcion extra del producto
+                if (tableRowData[j].textContent.trim() === "-") break;
+                const objField = tableHeadElements[j - 1]
+                  .replace(/[^\w\s]/gi, "")
+                  .replace(/\s+/g, "");
+                productObj.suppliers[0][objField] =
+                  tableRowData[j].textContent.trim();
+                break;
+            }
           }
+          tablePageData.push(productObj);
         }
-        tablePageData.push(productObj);
-      }
-      return tablePageData;
-    }, tableHeadElements);
+        return tablePageData;
+      },
+      tableHeadElements,
+      category
+    );
   } catch (e) {
     throw new Error(
       "######## Error en getTablePageData " +
@@ -631,8 +632,6 @@ async function getProductDataFromTable(page, subcategory, category) {
   //se inicializa nextPage no siendo pagina final
   let nextPage = { isLast: false };
 
-  const productDataFromTable = [];
-
   try {
     //itera sobre las paginas de una tabla
     writeLogLine(
@@ -659,20 +658,25 @@ async function getProductDataFromTable(page, subcategory, category) {
         const tableHeadElements = await getTableHeadElements(page);
 
         //obtiene los datos de productos de la tabla
-        tablePageData = await getTablePageData(page, tableHeadElements);
+        tablePageData = await getTablePageData(
+          page,
+          tableHeadElements,
+          category.replace(/[^\w\s]/gi, "").replace(/\s+/g, "")
+        );
 
         //sube los datos a firebase
         if (tablePageData.length != 0) {
-          await uploadProductData(tablePageData, category)
-            .then()
-            .catch((e) => {
-              throw new Error(
-                "######## Error en uploadProductData " +
-                  currentURL +
-                  " Error: " +
-                  e.message
-              );
-            });
+          // await uploadProductData(tablePageData)
+          //   .then()
+          //   .catch((e) => {
+          //     throw new Error(
+          //       "######## Error en uploadProductData " +
+          //         currentURL +
+          //         " Error: " +
+          //         e.message
+          //     );
+          //   });
+          console.log(tablePageData);
         }
       }
       //si pagina no es la ultima, cambia a la siguiente pagina
@@ -680,7 +684,6 @@ async function getProductDataFromTable(page, subcategory, category) {
         await new Promise((r) => setTimeout(r, 5000));
         await page.goto(nextPage.href);
       }
-      productDataFromTable.push(...tablePageData);
     }
     writeLogLine(
       logPath,
