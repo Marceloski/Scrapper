@@ -1,8 +1,5 @@
 import dotenv from "dotenv";
 // The Cloud Functions for Firebase SDK to create Cloud Functions and triggers.
-import { logger } from "firebase-functions";
-import { onRequest } from "firebase-functions/v2/https";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
 import { initializeApp, applicationDefault } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
@@ -19,3 +16,4 @@ initializeApp({
 // Obtener instancias de Firestore y Auth
 export const db = getFirestore();
 export const auth = getAuth();
+

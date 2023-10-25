@@ -5,7 +5,7 @@
  *  has write access to Typesense and you don't want to expose that.
  */
 import Typesense from "typesense";
-import functions from "firebase-functions";
+import functions from "firebase-functions/v1";
 
 export const client = new Typesense.Client({
   nodes: [
@@ -35,20 +35,15 @@ const productsCollection = {
 export const onProductCreate = functions.firestore
   .document("products/{productID}")
   .onCreate((snapshot, context) => {
+    console.log("se ejecuta onProductCreate");
     // Grab the document id as id value.
-    let id = context.params.bookID;
-    const {
-      description,
-      manufacturer,
-      manufacturerPartNo,
-      productCategory,
-    } = snapshot.data();
+    const data = snapshot.data();
+    //snapshot.id
     let document = {
-      id,
-      description,
-      manufacturer,
-      manufacturerPartNo,
-      productCategory,
+      description: data.description,
+      manufacturer: data.manufacturer,
+      manufacturerPartNo: data.manufacturerPartNo,
+      productCategory: data.productCategory,
     };
 
     // Index the document in books collection
@@ -58,20 +53,17 @@ export const onProductCreate = functions.firestore
 export const onProductUpdate = functions.firestore
   .document("products/{productID}}")
   .onUpdate((change, context) => {
+    console.log("se ejecuta onProductUpdate");
     // Grab the changed value
-    let id = context.params.bookID;
-    const {
-      description,
-      manufacturer,
-      manufacturerPartNo,
-      productCategory,
-    } = change.after.data();
-    let document = {
-      id,
-      description,
-      manufacturer,
-      manufacturerPartNo,
-      productCategory,
-    };
-    return client.collections("products").documents(id).update(document);
+    // let id = context.params.bookID;
+    // const { description, manufacturer, manufacturerPartNo, productCategory } =
+    //   change.after.data();
+    // let document = {
+    //   id,
+    //   description,
+    //   manufacturer,
+    //   manufacturerPartNo,
+    //   productCategory,
+    // };
+    // return client.collections("products").documents(id).update(document);
   });

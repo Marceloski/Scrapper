@@ -8,7 +8,6 @@ import {
   setLogPath,
 } from "../logWriter.js";
 import { db } from "../firebase.js";
-import { onProductCreate, onProductUpdate, client } from "../../typesense.js";
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -83,7 +82,6 @@ async function uploadProductData(dataCollection) {
       // Si no hay productos que calzen con los datos
       if (productsSnapshot.empty) {
         const newProductRef = await productsRef.add(data);
-        await onProductCreate.run;
         writeLogLine(
           logPath,
           "&&&&&&&& Nuevo producto añadido con ID : " +
