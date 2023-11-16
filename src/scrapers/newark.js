@@ -815,7 +815,11 @@ async function getProductsDataFromSubcategory(
 async function getAllProductsData(page, categoriesCollection) {
   //29
   for (let i = 0; i < categoriesCollection.length; i++) {
-    for (let j = 0; j < categoriesCollection[i].subcategories.length; j++) {
+    for (
+      let j = categoriesCollection[i].subcategories.length - 1;
+      j < categoriesCollection[i].subcategories.length;
+      j++
+    ) {
       var isFiltersApplied = false;
       await getProductsDataFromSubcategory(
         page,
