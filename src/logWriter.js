@@ -23,14 +23,27 @@ export function setLogName(scraperName) {
 }
 
 export function createLog(logName, message) {
-  fs.writeFile(logName, message, (err) => {
-    if (err) {
-      console.error("Error al escribir en el archivo de log:", err);
+  const { actualHourString, actualMinsString, actualSecsString } =
+    getActualTime();
+  fs.writeFile(
+    logName,
+    "ET:" +
+      actualHourString +
+      ":" +
+      actualMinsString +
+      ":" +
+      actualSecsString +
+      " " +
+      message,
+    (err) => {
+      if (err) {
+        console.error("Error al escribir en el archivo de log:", err);
+      }
     }
-  });
+  );
 }
 
-export function writeLogLine(logName, message) {
+function getActualTime() {
   const now = new Date();
   const actualHour = now.getHours();
   const actualMins = now.getMinutes();
@@ -38,7 +51,6 @@ export function writeLogLine(logName, message) {
   let actualHourString = "";
   let actualMinsString = "";
   let actualSecsString = "";
-
   if (actualHour < 10) {
     actualHourString = "0" + actualHour;
   } else actualHourString = actualHour;
@@ -51,16 +63,24 @@ export function writeLogLine(logName, message) {
     actualSecsString = "0" + actualSecs;
   } else actualSecsString = actualSecs;
 
+  return { actualHourString, actualMinsString, actualSecsString };
+}
+
+export function writeLogLine(logName, message) {
+  const { actualHourString, actualMinsString, actualSecsString } =
+    getActualTime();
   fs.appendFile(
     logName,
     "\n" +
-      "Tiempo: " +
+      "ET:" +
       actualHourString +
       ":" +
       actualMinsString +
       ":" +
       actualSecsString +
+      " " +
       message,
+
     (err) => {
       if (err) {
         console.error(err);

@@ -8,6 +8,7 @@ import {
   setLogPath,
 } from "../logWriter.js";
 import { db } from "../firebase.js";
+import { uuidv4 } from "@firebase/util";
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -81,14 +82,30 @@ async function uploadProductData(dataCollection) {
 
       // Si no hay productos que calzen con los datos
       if (productsSnapshot.empty) {
-        const newProductRef = await productsRef.add(data);
-        writeLogLine(
-          logPath,
-          "Nuevo producto añadido con ID : " +
-            newProductRef.id +
-            " en categoria " +
-            data.productCategory
-        );
+        const newProductId = uuidv4();
+        const newProductRef = db.collection("products").doc(newProductId);
+        data.idProduct = newProductId;
+        newProductRef
+          .set(data)
+          .then(() => {
+            writeLogLine(
+              logPath,
+              "Nuevo producto añadido con ID : " +
+              newProductRef.id +
+              " en categoria " +
+              data.productCategory
+            );
+          })
+          .catch((error) => {
+            writeLogLine(
+              logPath,
+              "Error al crear producto con ID : " +
+              newProductRef.id +
+              " en categoria " +
+              data.productCategory +
+              error.message
+            );
+          });
       } else {
         // Si se encuentran productos que calzen con los datos
         productsSnapshot.docs.forEach(async (productSnapshot) => {
@@ -97,7 +114,7 @@ async function uploadProductData(dataCollection) {
           if (productData.suppliers) {
             // Se comprueba si newark está como proveedor
             const newarkIndex = productData.suppliers.findIndex(
-              (supplier) => supplier.supplier === "newark"
+              (supplier) => supplier.supplier === "Newark" || supplier.supplier === "newark"
             );
 
             // Si existe newark como proveedor
@@ -117,9 +134,9 @@ async function uploadProductData(dataCollection) {
             writeLogLine(
               logPath,
               "Datos de proveedores actualizado para el producto: " +
-                productSnapshot.id +
-                " en categoria " +
-                data.productCategory
+              productSnapshot.id +
+              " en categoria " +
+              data.productCategory
             );
           }
         });
@@ -171,6 +188,7 @@ async function getTablePageData(page, tableHeadElements, categoryParam) {
           //obteniendo las casillas de una fila
           const tableRowData = tableRows[i].children;
           const productObj = {
+            idProduct: "",
             manufacturer: "",
             manufacturerPartNo: "",
             imgSrc: "",
@@ -178,7 +196,7 @@ async function getTablePageData(page, tableHeadElements, categoryParam) {
             productCategory: category,
             suppliers: [
               {
-                supplier: "newark",
+                supplier: "Newark",
                 prices: [],
                 stock: [],
                 productUrl: "",
@@ -204,7 +222,7 @@ async function getTablePageData(page, tableHeadElements, categoryParam) {
               case 2:
                 const skuElement = tableRowData[j].querySelector(".sku");
 
-                productObj.suppliers[0].newarkPartNo =
+                productObj.suppliers[0].supplierPartNo =
                   skuElement.textContent.trim();
                 break;
               //description y manufacturer
@@ -619,9 +637,9 @@ async function getProductDataFromTable(page, subcategory, category) {
             .catch((e) => {
               throw new Error(
                 "ERROR en uploadProductData " +
-                  currentURL +
-                  " Error: " +
-                  e.message
+                currentURL +
+                " Error: " +
+                e.message
               );
             });
         }
@@ -641,9 +659,9 @@ async function getProductDataFromTable(page, subcategory, category) {
   } catch (e) {
     throw new Error(
       " ERROR en getProductDataFromTable " +
-        subcategory +
-        " Error: " +
-        e.message
+      subcategory +
+      " Error: " +
+      e.message
     );
   }
 }
@@ -682,10 +700,10 @@ async function getProductsDataFromSubcategory(
         writeLogLine(
           logPath,
           "ERROR al aplicar filtros a subcategoria: " +
-            subcategory +
-            " Error: " +
-            e.message +
-            " Se sigue proceso sin aplicar filtros"
+          subcategory +
+          " Error: " +
+          e.message +
+          " Se sigue proceso sin aplicar filtros"
         );
       }
     }
@@ -701,10 +719,10 @@ async function getProductsDataFromSubcategory(
           writeLogLine(
             logPath,
             "ERROR en getProductsDataFromSubcategory " +
-              subcategory +
-              " Error : " +
-              e.message +
-              " Se sigue proceso con siguiente subcategoria"
+            subcategory +
+            " Error : " +
+            e.message +
+            " Se sigue proceso con siguiente subcategoria"
           );
         });
     } else {
@@ -728,18 +746,18 @@ async function getProductsDataFromSubcategory(
           writeLogLine(
             logPath,
             "ERROR en getProductsDataFromSubcategory " +
-              subcategory +
-              " Error: " +
-              e.message +
-              " Se sigue proceso con siguiente subcategoria."
+            subcategory +
+            " Error: " +
+            e.message +
+            " Se sigue proceso con siguiente subcategoria."
           );
         }
       } else {
         writeLogLine(
           logPath,
           "Aviso:  " +
-            subcategory +
-            " es página en blanco o no tiene más subcategorías."
+          subcategory +
+          " es página en blanco o no tiene más subcategorías."
         );
       }
     }
@@ -756,8 +774,9 @@ async function getProductsDataFromSubcategory(
 async function getAllProductsData(page, categoriesCollection) {
   //29
   for (let i = 0; i < categoriesCollection.length; i++) {
+    //categoriesCollection[i].subcategories.length - 1
     for (
-      let j = categoriesCollection[i].subcategories.length - 1;
+      let j = 0;
       j < categoriesCollection[i].subcategories.length;
       j++
     ) {
@@ -772,7 +791,7 @@ async function getAllProductsData(page, categoriesCollection) {
       writeLogLine(
         logPath,
         "Se termina de recorrer subcategoria general " +
-          categoriesCollection[i].subcategories[j]
+        categoriesCollection[i].subcategories[j]
       );
 
       //espera para cambiar entre subcategorias
@@ -794,7 +813,7 @@ async function getAllProductsData(page, categoriesCollection) {
  * @returns {Promise<{ category: string, subcategories: string[] }[]>} Colección de categorías y subcategorías.
  */
 async function getAllCategories(page) {
-  writeLogLine(logPath, "-------- Obteniendo Categorías -------- ");
+  writeLogLine(logPath, "Obteniendo Categorías");
   //recuperar categorias y subcategorias
   await page.goto("https://www.newark.com/browse-for-products");
   await page.waitForSelector(".categoryContainer");
@@ -839,7 +858,7 @@ async function App() {
       "--disable-infobars",
     ],
   });
-  createLog(logPath, "******** Se comienza ejecucion scraping Newark ********");
+  createLog(logPath, "Se comienza ejecucion scraping Newark");
   const page = await browser.newPage();
   await page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"
